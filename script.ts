@@ -2,6 +2,7 @@ const paceButton = document.getElementById('paceButton') as HTMLButtonElement | 
 const averageTimeDiv = document.getElementById('averageTime') as HTMLDivElement | null;
 const historyDiv = document.getElementById('history') as HTMLUListElement | null;
 const showMoreButton = document.getElementById('showMoreButton') as HTMLButtonElement | null;
+const showLessButton = document.getElementById('showLessButton') as HTMLButtonElement | null;
 
 let pressTimes: number[] = JSON.parse(localStorage.getItem('pressTimes') || '[]') || [];
 
@@ -40,7 +41,7 @@ const calculateAverageTime = (): void => {
 };
 
 const renderHistory = (): void => {
-    if (!historyDiv || !showMoreButton) {
+    if (!historyDiv || !showMoreButton || !showLessButton) {
         console.error("History elements not found.");
         return;
     }
@@ -60,11 +61,18 @@ const renderHistory = (): void => {
         });
     }
 
-    // Show or hide the "Show More" button
+    // Show or hide the "Show More" button based on available history
     if (reversedTimes.length > displayedCount) {
         showMoreButton.classList.remove('hidden');
     } else {
         showMoreButton.classList.add('hidden');
+    }
+
+    // Show or hide the "Show Less" button based on current displayed count
+    if (displayedCount > INITIAL_DISPLAY_COUNT) {
+        showLessButton.classList.remove('hidden');
+    } else {
+        showLessButton.classList.add('hidden');
     }
 };
 
@@ -80,6 +88,13 @@ if (paceButton) {
 if (showMoreButton) {
     showMoreButton.addEventListener('click', () => {
         displayedCount += SHOW_MORE_INCREMENT;
+        renderHistory();
+    });
+}
+
+if (showLessButton) {
+    showLessButton.addEventListener('click', () => {
+        displayedCount = INITIAL_DISPLAY_COUNT; // Reset to initial display count
         renderHistory();
     });
 }
