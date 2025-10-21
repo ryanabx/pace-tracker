@@ -1,20 +1,29 @@
+html, body {
+    height: 100%; /* Make html and body fill the viewport */
+    margin: 0; /* Remove default body margin */
+    overflow: hidden; /* Prevent scrolling on the main page */
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    margin: 0;
+    height: 100%; /* Ensure body takes full height */
     background-color: #f0f2f5;
     color: #333;
 }
 
 .container {
+    display: flex; /* Make container a flex column */
+    flex-direction: column;
     text-align: center;
     background: white;
     padding: 40px;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    height: 90vh; /* Set a max height for the container */
+    max-height: 800px; /* And a pixel-based max-height */
 }
 
 .tracker-header {
@@ -98,11 +107,18 @@ h1 {
 .history-container {
     margin-top: 30px;
     text-align: left;
+    display: flex; /* Make history-container a flex column */
+    flex-direction: column;
+    flex-grow: 1; /* Allow it to grow and take available space */
+    min-height: 0; /* Crucial for flex items with scrollable content */
+    overflow: hidden; /* Contain the scroll of #history */
 }
 
 #history {
     list-style-type: none;
     padding: 0;
+    flex-grow: 1; /* Allow the list itself to grow */
+    overflow-y: auto; /* Enable vertical scrolling for the list */
 }
 
 #history li {
@@ -110,6 +126,13 @@ h1 {
     margin-bottom: 5px;
     padding: 8px;
     border-radius: 4px;
+}
+
+.history-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 20px;
 }
 
 .history-button {
