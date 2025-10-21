@@ -17,11 +17,29 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-h1 {
-    margin-top: 0;
+.tracker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
-#paceButton, .history-button {
+h1 {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 1.8em;
+    flex-grow: 1;
+}
+
+.nav-button {
+    background: none;
+    border: none;
+    font-size: 2em;
+    cursor: pointer;
+    color: #007bff;
+}
+
+#paceButton, .history-button, .nav-button {
     background-color: #007bff;
     color: white;
     border: none;
@@ -32,8 +50,40 @@ h1 {
     transition: background-color 0.3s;
 }
 
-#paceButton:hover, .history-button:hover {
+.nav-button {
+    padding: 0 20px;
+    background-color: transparent;
+    color: #007bff;
+}
+
+.history-button[disabled] {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+#paceButton:hover, .history-button:not([disabled]):hover, .nav-button:hover {
     background-color: #0056b3;
+}
+
+/* Specific button colors */
+#newTrackerButton {
+    background-color: #28a745; /* Green */
+}
+
+#newTrackerButton:hover {
+    background-color: #218838;
+}
+
+#deleteTrackerButton {
+    background-color: #dc3545; /* Red */
+}
+
+#deleteTrackerButton:hover {
+    background-color: #c82333;
+}
+
+#clearHistoryButton {
+    background-color: #fd7e14; /* Orange */
 }
 
 #averageTime {

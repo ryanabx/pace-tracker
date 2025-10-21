@@ -1,22 +1,64 @@
+// DOM Elements
+const trackerNameEl = document.getElementById('trackerName') as HTMLHeadingElement | null;
 const paceButton = document.getElementById('paceButton') as HTMLButtonElement | null;
 const averageTimeDiv = document.getElementById('averageTime') as HTMLDivElement | null;
 const historyDiv = document.getElementById('history') as HTMLUListElement | null;
 const showMoreButton = document.getElementById('showMoreButton') as HTMLButtonElement | null;
 const showLessButton = document.getElementById('showLessButton') as HTMLButtonElement | null; 
-const clearAllButton = document.getElementById('clearAllButton') as HTMLButtonElement | null;
+const clearHistoryButton = document.getElementById('clearHistoryButton') as HTMLButtonElement | null;
+const newTrackerButton = document.getElementById('newTrackerButton') as HTMLButtonElement | null;
+const deleteTrackerButton = document.getElementById('deleteTrackerButton') as HTMLButtonElement | null;
+const prevTrackerButton = document.getElementById('prevTrackerButton') as HTMLButtonElement | null;
+const nextTrackerButton = document.getElementById('nextTrackerButton') as HTMLButtonElement | null;
 
-let pressTimes: number[] = JSON.parse(localStorage.getItem('pressTimes') || '[]') || [];
+// --- State Management ---
 
+interface Tracker {
+    name: string;
+    pressTimes: number[];
+}
+
+interface AppState {
+    trackers: Record<string, Tracker>;
+    activeTrackerId: string | null;
+}
+
+let state: AppState;
+
+// History display state
 const INITIAL_DISPLAY_COUNT = 5;
 const SHOW_MORE_INCREMENT = 10;
 let displayedCount = INITIAL_DISPLAY_COUNT;
 
+const saveState = (): void => {
+    localStorage.setItem('paceTrackerState', JSON.stringify(state));
+};
 
-const calculateAverageTime = (): void => {
-    if (!averageTimeDiv) {
+const loadState = (): void => {
+    const savedState = localStorage.getItem('paceTrackerState');
+    if (savedState) {
+        state = JSON.parse(savedState);
+    } else {
+        // Default initial state
+        const defaultId = `tracker-${Date.now()}`;
+        state = {
+            trackers: {
+                [defaultId]: { name: 'My First Pace', pressTimes: [] }
+            },
+            activeTrackerId: defaultId
+        };
+    }
+};
+
+// --- UI Update Functions ---
+
+const updateAverageTime = (): void => {
+    if (!averageTimeDiv || !state.activeTrackerId) {
         console.error("Element with id 'averageTime' not found.");
         return;
     }
+
+    const pressTimes = state.trackers[state.activeTrackerId].pressTimes;
 
     if (pressTimes.length < 2) {
         averageTimeDiv.textContent = 'Not enough data yet.';
@@ -41,11 +83,16 @@ const calculateAverageTime = (): void => {
     `;
 };
 
-const renderHistory = (): void => {
-    if (!historyDiv || !showMoreButton || !showLessButton || !clearAllButton) {
+const updateHistory = (): void => {
+    if (!historyDiv || !showMoreButton || !showLessButton || !clearHistoryButton || !deleteTrackerButton || !state.activeTrackerId) {
         console.error("History elements not found.");
         return;
     }
+
+    const pressTimes = state.trackers[state.activeTrackerId].pressTimes;
+    const trackerIds = Object.keys(state.trackers);
+
+    deleteTrackerButton.disabled = trackerIds.length <= 1;
 
     historyDiv.innerHTML = ''; // Clear existing list
 
@@ -69,11 +116,11 @@ const renderHistory = (): void => {
         showMoreButton.classList.add('hidden');
     }
 
-    // Show or hide the "Clear All" button based on whether there's any data
+    // Show or hide the "Clear History" button based on whether there's any data
     if (pressTimes.length > 0) {
-        clearAllButton.classList.remove('hidden');
+        clearHistoryButton.classList.remove('hidden');
     } else {
-        clearAllButton.classList.add('hidden');
+        clearHistoryButton.classList.add('hidden');
     }
 
     // Show or hide the "Show Less" button based on current displayed count
@@ -84,52 +131,132 @@ const renderHistory = (): void => {
     }
 };
 
-const clearAllData = (): void => {
-    if (!clearAllButton) {
-        console.error("Clear All button not found.");
-        return;
-    }
+const updateUI = (): void => {
+    if (!state.activeTrackerId || !trackerNameEl) return;
 
-    if (confirm('Are you sure you want to clear all past results? This action cannot be undone.')) {
-        localStorage.removeItem('pressTimes');
-        pressTimes = []; // Reset the in-memory array
+    const activeTracker = state.trackers[state.activeTrackerId];
+    trackerNameEl.textContent = activeTracker.name;
+
+    displayedCount = INITIAL_DISPLAY_COUNT; // Reset history view on tracker switch
+    updateAverageTime();
+    updateHistory();
+};
+
+// --- Event Handler Functions ---
+
+const handlePaceClick = () => {
+    if (!state.activeTrackerId) return;
+    state.trackers[state.activeTrackerId].pressTimes.push(Date.now());
+    saveState();
+    updateAverageTime();
+    updateHistory();
+};
+
+const handleClearHistory = (): void => {
+    if (!state.activeTrackerId) return;
+
+    if (confirm('Are you sure you want to clear the history for this tracker? This action cannot be undone.')) {
+        state.trackers[state.activeTrackerId].pressTimes = [];
         displayedCount = INITIAL_DISPLAY_COUNT; // Reset display count
-
-        // Update the UI
-        calculateAverageTime();
-        renderHistory();
+        saveState();
+        updateUI();
     }
 };
 
-if (paceButton) {
-    paceButton.addEventListener('click', () => {
-        pressTimes.push(Date.now());
-        localStorage.setItem('pressTimes', JSON.stringify(pressTimes));
-        calculateAverageTime();
-        renderHistory();
-    });
-}
+const handleNewTracker = () => {
+    const name = prompt("Enter a name for the new tracker:", "New Pace");
+    if (name) {
+        const newId = `tracker-${Date.now()}`;
+        state.trackers[newId] = { name, pressTimes: [] };
+        state.activeTrackerId = newId;
+        saveState();
+        updateUI();
+    }
+};
 
-if (showMoreButton) {
-    showMoreButton.addEventListener('click', () => {
-        displayedCount += SHOW_MORE_INCREMENT;
-        renderHistory();
-    });
-}
+const handleDeleteTracker = () => {
+    if (!state.activeTrackerId) return;
+    const trackerIds = Object.keys(state.trackers);
+    if (trackerIds.length <= 1) {
+        alert("You cannot delete the last tracker.");
+        return;
+    }
 
-if (showLessButton) {
-    showLessButton.addEventListener('click', () => {
-        displayedCount = INITIAL_DISPLAY_COUNT; // Reset to initial display count
-        renderHistory();
-    });
-}
+    const currentTrackerName = state.trackers[state.activeTrackerId].name;
+    if (confirm(`Are you sure you want to delete the "${currentTrackerName}" tracker?`)) {
+        const currentIndex = trackerIds.indexOf(state.activeTrackerId);
+        delete state.trackers[state.activeTrackerId];
 
-if (clearAllButton) {
-    clearAllButton.addEventListener('click', () => {
-        clearAllData();
-    });
-}
+        // Switch to the next available tracker
+        const newTrackerIds = Object.keys(state.trackers);
+        state.activeTrackerId = newTrackerIds[currentIndex] || newTrackerIds[newTrackerIds.length - 1];
 
-// Initial calculation and render on page load
-calculateAverageTime();
-renderHistory();
+        saveState();
+        updateUI();
+    }
+};
+
+const switchTracker = (direction: 'next' | 'prev') => {
+    if (!state.activeTrackerId) return;
+    const trackerIds = Object.keys(state.trackers);
+    const currentIndex = trackerIds.indexOf(state.activeTrackerId);
+    let nextIndex;
+
+    if (direction === 'next') {
+        nextIndex = (currentIndex + 1) % trackerIds.length;
+    } else {
+        nextIndex = (currentIndex - 1 + trackerIds.length) % trackerIds.length;
+    }
+
+    state.activeTrackerId = trackerIds[nextIndex];
+    saveState();
+    updateUI();
+};
+
+// --- Initialization ---
+
+const initializeApp = () => {
+    loadState();
+
+    if (paceButton) {
+        paceButton.addEventListener('click', handlePaceClick);
+    }
+
+    if (showMoreButton) {
+        showMoreButton.addEventListener('click', () => {
+            displayedCount += SHOW_MORE_INCREMENT;
+            updateHistory();
+        });
+    }
+
+    if (showLessButton) {
+        showLessButton.addEventListener('click', () => {
+            displayedCount = INITIAL_DISPLAY_COUNT;
+            updateHistory();
+        });
+    }
+
+    if (clearHistoryButton) {
+        clearHistoryButton.addEventListener('click', handleClearHistory);
+    }
+
+    if (newTrackerButton) {
+        newTrackerButton.addEventListener('click', handleNewTracker);
+    }
+
+    if (deleteTrackerButton) {
+        deleteTrackerButton.addEventListener('click', handleDeleteTracker);
+    }
+
+    if (prevTrackerButton) {
+        prevTrackerButton.addEventListener('click', () => switchTracker('prev'));
+    }
+
+    if (nextTrackerButton) {
+        nextTrackerButton.addEventListener('click', () => switchTracker('next'));
+    }
+
+    updateUI();
+};
+
+initializeApp();

@@ -10,7 +10,11 @@
 </head>
 <body>
     <div class="container">
-        <h1>Pace Tracker</h1>
+        <div class="tracker-header">
+            <button id="prevTrackerButton" class="nav-button">&lt;</button>
+            <h1 id="trackerName">Pace Tracker</h1>
+            <button id="nextTrackerButton" class="nav-button">&gt;</button>
+        </div>
         <button id="paceButton">Track Pace</button>
         <div id="averageTime"></div>
         <div class="history-container">
@@ -18,7 +22,9 @@
             <ul id="history"></ul>
             <button id="showMoreButton" class="history-button hidden">Show More</button>
             <button id="showLessButton" class="history-button hidden">Show Less</button>
-            <button id="clearAllButton" class="history-button hidden">Clear All</button>
+            <button id="clearHistoryButton" class="history-button hidden">Clear History</button>
+            <button id="newTrackerButton" class="history-button">New Tracker</button>
+            <button id="deleteTrackerButton" class="history-button">Delete Tracker</button>
         </div>
     </div>
     <script type="module" src="/script.ts"></script>
