@@ -2,7 +2,8 @@ const paceButton = document.getElementById('paceButton') as HTMLButtonElement | 
 const averageTimeDiv = document.getElementById('averageTime') as HTMLDivElement | null;
 const historyDiv = document.getElementById('history') as HTMLUListElement | null;
 const showMoreButton = document.getElementById('showMoreButton') as HTMLButtonElement | null;
-const showLessButton = document.getElementById('showLessButton') as HTMLButtonElement | null;
+const showLessButton = document.getElementById('showLessButton') as HTMLButtonElement | null; 
+const clearAllButton = document.getElementById('clearAllButton') as HTMLButtonElement | null;
 
 let pressTimes: number[] = JSON.parse(localStorage.getItem('pressTimes') || '[]') || [];
 
@@ -41,7 +42,7 @@ const calculateAverageTime = (): void => {
 };
 
 const renderHistory = (): void => {
-    if (!historyDiv || !showMoreButton || !showLessButton) {
+    if (!historyDiv || !showMoreButton || !showLessButton || !clearAllButton) {
         console.error("History elements not found.");
         return;
     }
@@ -68,11 +69,35 @@ const renderHistory = (): void => {
         showMoreButton.classList.add('hidden');
     }
 
+    // Show or hide the "Clear All" button based on whether there's any data
+    if (pressTimes.length > 0) {
+        clearAllButton.classList.remove('hidden');
+    } else {
+        clearAllButton.classList.add('hidden');
+    }
+
     // Show or hide the "Show Less" button based on current displayed count
     if (displayedCount > INITIAL_DISPLAY_COUNT) {
         showLessButton.classList.remove('hidden');
     } else {
         showLessButton.classList.add('hidden');
+    }
+};
+
+const clearAllData = (): void => {
+    if (!clearAllButton) {
+        console.error("Clear All button not found.");
+        return;
+    }
+
+    if (confirm('Are you sure you want to clear all past results? This action cannot be undone.')) {
+        localStorage.removeItem('pressTimes');
+        pressTimes = []; // Reset the in-memory array
+        displayedCount = INITIAL_DISPLAY_COUNT; // Reset display count
+
+        // Update the UI
+        calculateAverageTime();
+        renderHistory();
     }
 };
 
@@ -96,6 +121,12 @@ if (showLessButton) {
     showLessButton.addEventListener('click', () => {
         displayedCount = INITIAL_DISPLAY_COUNT; // Reset to initial display count
         renderHistory();
+    });
+}
+
+if (clearAllButton) {
+    clearAllButton.addEventListener('click', () => {
+        clearAllData();
     });
 }
 
