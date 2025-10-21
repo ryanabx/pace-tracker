@@ -1,7 +1,14 @@
 const paceButton = document.getElementById('paceButton') as HTMLButtonElement | null;
 const averageTimeDiv = document.getElementById('averageTime') as HTMLDivElement | null;
+const historyDiv = document.getElementById('history') as HTMLUListElement | null;
+const showMoreButton = document.getElementById('showMoreButton') as HTMLButtonElement | null;
 
 let pressTimes: number[] = JSON.parse(localStorage.getItem('pressTimes') || '[]') || [];
+
+const INITIAL_DISPLAY_COUNT = 5;
+const SHOW_MORE_INCREMENT = 10;
+let displayedCount = INITIAL_DISPLAY_COUNT;
+
 
 const calculateAverageTime = (): void => {
     if (!averageTimeDiv) {
@@ -32,13 +39,51 @@ const calculateAverageTime = (): void => {
     `;
 };
 
+const renderHistory = (): void => {
+    if (!historyDiv || !showMoreButton) {
+        console.error("History elements not found.");
+        return;
+    }
+
+    historyDiv.innerHTML = ''; // Clear existing list
+
+    const reversedTimes = [...pressTimes].reverse();
+    const timesToDisplay = reversedTimes.slice(0, displayedCount);
+
+    if (timesToDisplay.length === 0) {
+        historyDiv.innerHTML = '<li>No clicks recorded yet.</li>';
+    } else {
+        timesToDisplay.forEach(time => {
+            const listItem = document.createElement('li');
+            listItem.textContent = new Date(time).toLocaleString();
+            historyDiv.appendChild(listItem);
+        });
+    }
+
+    // Show or hide the "Show More" button
+    if (reversedTimes.length > displayedCount) {
+        showMoreButton.classList.remove('hidden');
+    } else {
+        showMoreButton.classList.add('hidden');
+    }
+};
+
 if (paceButton) {
     paceButton.addEventListener('click', () => {
         pressTimes.push(Date.now());
         localStorage.setItem('pressTimes', JSON.stringify(pressTimes));
         calculateAverageTime();
+        renderHistory();
     });
 }
 
-// Initial calculation on page load
+if (showMoreButton) {
+    showMoreButton.addEventListener('click', () => {
+        displayedCount += SHOW_MORE_INCREMENT;
+        renderHistory();
+    });
+}
+
+// Initial calculation and render on page load
 calculateAverageTime();
+renderHistory();
