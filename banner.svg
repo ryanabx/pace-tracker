@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1280"
+   height="640"
+   viewBox="0 0 1280 640"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="icon.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1">
+    <inkscape:page
+       x="0"
+       y="0"
+       width="1280"
+       height="640"
+       id="page2"
+       margin="0"
+       bleed="0" />
+  </sodipodi:namedview>
+  <g
+     id="g3"
+     transform="translate(0,4.4412231)">
+    <path
+       fill="#007bff"
+       d="m 640,163.86909 c -83.79632,0 -151.68969,67.89337 -151.68969,151.68969 0,83.79632 67.89337,151.68969 151.68969,151.68969 83.79632,0 151.68969,-67.89337 151.68969,-151.68969 0,-83.79632 -67.89337,-151.68969 -151.68969,-151.68969 z m 0,274.02009 c -67.58754,0 -122.3304,-54.74286 -122.3304,-122.3304 0,-67.58754 54.74286,-122.3304 122.3304,-122.3304 67.58755,0 122.3304,54.74286 122.3304,122.3304 0,67.58754 -54.74285,122.3304 -122.3304,122.3304 z M 620.42714,266.62662 h 39.14573 v 97.86432 h -39.14573 z"
+       id="path1"
+       style="stroke-width:0.611652" />
+    <text
+       xml:space="preserve"
+       style="font-size:96px;font-family:'Adwaita Sans';-inkscape-font-specification:'Adwaita Sans';writing-mode:lr-tb;direction:ltr;fill:#007bff;fill-opacity:1;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4.6;stroke-dasharray:none;paint-order:stroke markers fill"
+       id="text1"
+       y="563.72656"
+       x="417.8266"><tspan
+         sodipodi:role="line"
+         id="tspan1"
+         x="417.8266"
+         y="563.72656"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:96px;font-family:'Adwaita Sans';-inkscape-font-specification:'Adwaita Sans Bold';fill:#007bff;fill-opacity:1;stroke:none;stroke-width:1;stroke-dasharray:none;stroke-opacity:1">TRACKER</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:96px;font-family:'Adwaita Mono';-inkscape-font-specification:'Adwaita Mono Bold';writing-mode:lr-tb;direction:ltr;fill:#007bff;fill-opacity:1;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4.6;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill"
+       id="text2"
+       x="516.2384"
+       y="137.23474"><tspan
+         id="tspan2"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Adwaita Sans';-inkscape-font-specification:'Adwaita Sans Bold'">PACE</tspan></text>
+  </g>
+</svg>
