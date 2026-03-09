@@ -2,6 +2,7 @@
 const trackerNameEl = document.getElementById('trackerName') as HTMLHeadingElement | null;
 const paceButton = document.getElementById('paceButton') as HTMLButtonElement | null;
 const averageTimeDiv = document.getElementById('averageTime') as HTMLDivElement | null;
+const averageTimeLastTenDiv = document.getElementById('averageTimeLastTen') as HTMLDivElement | null;
 const historyDiv = document.getElementById('history') as HTMLUListElement | null;
 const showMoreButton = document.getElementById('showMoreButton') as HTMLButtonElement | null;
 const showLessButton = document.getElementById('showLessButton') as HTMLButtonElement | null; 
@@ -78,7 +79,38 @@ const updateAverageTime = (): void => {
     const seconds = Math.floor((averageDifference % (1000 * 60)) / 1000);
 
     averageTimeDiv.innerHTML = `
-        <div>${days}d ${hours}h ${minutes}m ${seconds}s</div>
+        <div>Overall: ${days}d ${hours}h ${minutes}m ${seconds}s</div>
+        <div style="font-size: 0.5em; margin-top: 10px;">on average</div>
+    `;
+};
+
+const updateAverageTimeLastTenEntries = (): void => {
+    if (!averageTimeLastTenDiv || !state.activeTrackerId) {
+        console.error("Element with id 'averageTimeLastTen' not found.");
+        return;
+    }
+
+    const pressTimes = state.trackers[state.activeTrackerId].pressTimes.slice(-10);
+
+    if (pressTimes.length < 10) {
+        averageTimeLastTenDiv.textContent = 'Not enough data yet.';
+        return;
+    }
+
+    let totalDifference = 0;
+    for (let i = 1; i < pressTimes.length; i++) {
+        totalDifference += pressTimes[i] - pressTimes[i - 1];
+    }
+
+    const averageDifference: number = totalDifference / (pressTimes.length - 1);
+
+    const days = Math.floor(averageDifference / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((averageDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((averageDifference % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((averageDifference % (1000 * 60)) / 1000);
+
+    averageTimeLastTenDiv.innerHTML = `
+        <div>Last 10: ${days}d ${hours}h ${minutes}m ${seconds}s</div>
         <div style="font-size: 0.5em; margin-top: 10px;">on average</div>
     `;
 };
