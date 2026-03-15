@@ -171,6 +171,7 @@ const updateUI = (): void => {
 
     displayedCount = INITIAL_DISPLAY_COUNT; // Reset history view on tracker switch
     updateAverageTime();
+    updateAverageTimeLastTenEntries(); // Calculate and display average for last 10 entries
     updateHistory();
 };
 
@@ -181,6 +182,7 @@ const handlePaceClick = () => {
     state.trackers[state.activeTrackerId].pressTimes.push(Date.now());
     saveState();
     updateAverageTime();
+    updateAverageTimeLastTenEntries(); // Calculate and display average for last 10 entries
     updateHistory();
 };
 
