@@ -3,6 +3,7 @@ const trackerNameEl = document.getElementById('trackerName') as HTMLHeadingEleme
 const paceButton = document.getElementById('paceButton') as HTMLButtonElement | null;
 const averageTimeDiv = document.getElementById('averageTime') as HTMLDivElement | null;
 const averageTimeLastTenDiv = document.getElementById('averageTimeLastTen') as HTMLDivElement | null;
+const timeSinceLastClickDiv = document.getElementById('timeSinceLastClick') as HTMLDivElement | null;
 const historyDiv = document.getElementById('history') as HTMLUListElement | null;
 const showMoreButton = document.getElementById('showMoreButton') as HTMLButtonElement | null;
 const showLessButton = document.getElementById('showLessButton') as HTMLButtonElement | null; 
@@ -53,6 +54,15 @@ const loadState = (): void => {
 
 // --- UI Update Functions ---
 
+const formatTime = (milliseconds: number): string => {
+    const days = Math.floor(milliseconds / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((milliseconds % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000);
+
+    return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+}
+
 const updateAverageTime = (): void => {
     if (!averageTimeDiv || !state.activeTrackerId) {
         console.error("Element with id 'averageTime' not found.");
@@ -73,13 +83,8 @@ const updateAverageTime = (): void => {
 
     const averageDifference: number = totalDifference / (pressTimes.length - 1);
 
-    const days = Math.floor(averageDifference / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((averageDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((averageDifference % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((averageDifference % (1000 * 60)) / 1000);
-
     averageTimeDiv.innerHTML = `
-        <div>Overall: ${days}d ${hours}h ${minutes}m ${seconds}s</div>
+        <div>Overall: ${formatTime(averageDifference)}</div>
         <div style="font-size: 0.5em; margin-top: 10px;">on average</div>
     `;
 };
@@ -92,7 +97,7 @@ const updateAverageTimeLastTenEntries = (): void => {
 
     const pressTimes = state.trackers[state.activeTrackerId].pressTimes.slice(-10);
 
-    if (pressTimes.length < 10) {
+    if (pressTimes.length < 2) {
         averageTimeLastTenDiv.textContent = 'Not enough data yet.';
         return;
     }
@@ -104,14 +109,29 @@ const updateAverageTimeLastTenEntries = (): void => {
 
     const averageDifference: number = totalDifference / (pressTimes.length - 1);
 
-    const days = Math.floor(averageDifference / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((averageDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((averageDifference % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((averageDifference % (1000 * 60)) / 1000);
-
     averageTimeLastTenDiv.innerHTML = `
-        <div>Last 10: ${days}d ${hours}h ${minutes}m ${seconds}s</div>
+        <div>Last 10: ${formatTime(averageDifference)}</div>
         <div style="font-size: 0.5em; margin-top: 10px;">on average</div>
+    `;
+};
+
+const updateTimeSinceLastClick = (): void => {
+    if (!timeSinceLastClickDiv || !state.activeTrackerId) {
+        return;
+    }
+
+    const pressTimes = state.trackers[state.activeTrackerId].pressTimes;
+    const lastPressTime = pressTimes[pressTimes.length - 1];
+
+    if (!lastPressTime) {
+        timeSinceLastClickDiv.textContent = 'No clicks yet.';
+        return;
+    }
+
+    const difference = Date.now() - lastPressTime;
+
+    timeSinceLastClickDiv.innerHTML = `
+        <div>Since last: ${formatTime(difference)}</div>
     `;
 };
 
@@ -173,6 +193,7 @@ const updateUI = (): void => {
     updateAverageTime();
     updateAverageTimeLastTenEntries(); // Calculate and display average for last 10 entries
     updateHistory();
+    updateTimeSinceLastClick();
 };
 
 // --- Event Handler Functions ---
@@ -184,6 +205,7 @@ const handlePaceClick = () => {
     updateAverageTime();
     updateAverageTimeLastTenEntries(); // Calculate and display average for last 10 entries
     updateHistory();
+    updateTimeSinceLastClick();
 };
 
 const handleClearHistory = (): void => {
@@ -290,6 +312,7 @@ const initializeApp = () => {
         nextTrackerButton.addEventListener('click', () => switchTracker('next'));
     }
 
+    setInterval(updateTimeSinceLastClick, 1000);
     updateUI();
 };
 

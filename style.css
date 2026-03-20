@@ -41,6 +41,7 @@ h1 {
     margin-bottom: 0;
     font-size: 1.8em;
     flex-grow: 1;
+    color: #007bff;
 }
 
 .nav-button {
@@ -98,9 +99,14 @@ h1 {
     background-color: #fd7e14; /* Orange */
 }
 
-#averageTime {
+#averageTime, #averageTimeLastTen, #timeSinceLastClick {
     margin-top: 20px;
     font-size: 2em;
+}
+
+#timeSinceLastClick, #averageTimeLastTen {
+    font-size: 1.5em;
+    margin-top: 10px;
 }
 
 .hidden {
