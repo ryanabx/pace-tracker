@@ -99,14 +99,41 @@ h1 {
     background-color: #fd7e14; /* Orange */
 }
 
-#averageTime, #averageTimeLastTen, #timeSinceLastClick {
+#metrics-container {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
     margin-top: 20px;
+    padding-bottom: 10px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+}
+
+#metrics-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+.metric-item {
+    scroll-snap-align: start;
+    flex: 0 0 auto;
+    min-width: 50%;
+    width: 100%;
+    padding: 0 10px;
+    margin-right: 15px;
+}
+
+#averageTime, #averageTimeLastTen, #timeSinceLastClick {
     font-size: 2em;
 }
 
 #timeSinceLastClick, #averageTimeLastTen {
     font-size: 1.5em;
-    margin-top: 10px;
+}
+
+.metric-item:last-child {
+    margin-right: 0;
 }
 
 .hidden {
