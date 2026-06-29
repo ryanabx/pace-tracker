@@ -13,13 +13,22 @@ import {
     MenuItem,
     ListItemIcon,
     ListItemText,
+    BottomNavigation,
+    BottomNavigationAction,
+    Button,
+    Alert,
+    Snackbar,
 } from '@mui/material';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import { loadState, saveState, AppState, Tracker, ThemeMode } from '../core/state';
+import SpeedIcon from '@mui/icons-material/Speed';
+import HistoryIcon from '@mui/icons-material/History';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import SettingsIcon from '@mui/icons-material/Settings';
+import { loadState, saveState, AppState, ThemeMode } from '../core/state';
 import {
     formatTime,
     calculateAverage,
@@ -27,11 +36,10 @@ import {
     addPress,
     clearHistory,
 } from '../core/tracker';
-import TrackerHeader from './components/TrackerHeader';
 import PaceButton from './components/PaceButton';
-import MetricsDisplay from './components/MetricsDisplay';
 import HistoryList from './components/HistoryList';
-import HistoryActions from './components/HistoryActions';
+import MetricsDisplay from './components/MetricsDisplay';
+import SettingsTab from './components/Settings';
 
 const LIGHT_THEME = createTheme({
     palette: {
@@ -98,14 +106,31 @@ const getTheme = (mode: ThemeMode, systemMode: 'light' | 'dark'): typeof LIGHT_T
 
 const INITIAL_DISPLAY_COUNT = 5;
 const SHOW_MORE_INCREMENT = 10;
+const COMMIT_HASH = __COMMIT_HASH__;
+const REPO_URL = 'https://github.com/ryanabx/pace-tracker';
+
+const TABS = [
+    { label: 'Pace', icon: <SpeedIcon /> },
+    { label: 'History', icon: <HistoryIcon /> },
+    { label: 'Metrics', icon: <BarChartIcon /> },
+    { label: 'Settings', icon: <SettingsIcon /> },
+];
+
+type TabName = 'pace' | 'history' | 'metrics' | 'settings';
 
 const App: React.FC = () => {
     const { mode: systemMode, setMode: setSystemMode } = useColorScheme();
     const [state, setState] = useState<AppState>(() => loadState());
+    const [activeTab, setActiveTab] = useState<TabName>('pace');
     const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY_COUNT);
     const [now, setNow] = useState(Date.now());
     const [themeMenuAnchor, setThemeMenuAnchor] = useState<null | HTMLElement>(null);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' }>({
+        open: false,
+        message: '',
+        severity: 'info',
+    });
 
     // Persist state to localStorage whenever it changes
     useEffect(() => {
@@ -155,6 +180,7 @@ const App: React.FC = () => {
             clearHistory(tracker);
             setDisplayCount(INITIAL_DISPLAY_COUNT);
             setState({ ...state });
+            setSnackbar({ open: true, message: 'History cleared.', severity: 'success' });
         }
     }, [state]);
 
@@ -162,12 +188,13 @@ const App: React.FC = () => {
         const name = window.prompt('Enter a name for the new tracker:', 'New Pace');
         if (name) {
             const newId = `tracker-${Date.now()}`;
-            const newTracker: Tracker = { name, pressTimes: [] };
+            const newTracker = { name, pressTimes: [] as number[] };
             setState({
                 ...state,
                 trackers: { ...state.trackers, [newId]: newTracker },
                 activeTrackerId: newId,
             });
+            setSnackbar({ open: true, message: `Tracker "${name}" created.`, severity: 'success' });
         }
     }, [state]);
 
@@ -175,7 +202,7 @@ const App: React.FC = () => {
         if (!state.activeTrackerId) return;
         const trackerIds = Object.keys(state.trackers);
         if (trackerIds.length <= 1) {
-            window.alert('You cannot delete the last tracker.');
+            setSnackbar({ open: true, message: 'Cannot delete the last tracker.', severity: 'error' });
             return;
         }
 
@@ -193,6 +220,7 @@ const App: React.FC = () => {
                 trackers: newTrackers,
                 activeTrackerId: newActiveId,
             });
+            setSnackbar({ open: true, message: `Tracker "${currentTrackerName}" deleted.`, severity: 'success' });
         }
     }, [state]);
 
@@ -215,6 +243,11 @@ const App: React.FC = () => {
         setDisplayCount(INITIAL_DISPLAY_COUNT);
     }, [state]);
 
+    const handleSelectTracker = useCallback((trackerId: string) => {
+        setState(prev => ({ ...prev, activeTrackerId: trackerId }));
+        setDisplayCount(INITIAL_DISPLAY_COUNT);
+    }, []);
+
     const activeTracker = state.activeTrackerId ? state.trackers[state.activeTrackerId] : null;
     const pressTimes = activeTracker?.pressTimes ?? [];
 
@@ -226,6 +259,12 @@ const App: React.FC = () => {
         { mode: 'light', icon: <Brightness7Icon />, label: 'Light' },
         { mode: 'dark', icon: <Brightness4Icon />, label: 'Dark' },
     ];
+
+    const timeSinceLast = pressTimes.length > 0 ? getTimeSinceLastClick(pressTimes) : -1;
+
+    const tabContentHeight = {
+        height: { xs: 'calc(85dvh - 56px)', sm: 'calc(80dvh - 56px)' },
+    };
 
     return (
         <ThemeProvider theme={theme}>
@@ -247,9 +286,8 @@ const App: React.FC = () => {
                             p: { xs: 2, sm: 4 },
                             display: 'flex',
                             flexDirection: 'column',
-                            alignItems: 'center',
                             gap: 2,
-                            height: { xs: '85dvh', sm: '80dvh' },
+                            ...tabContentHeight,
                             overflow: 'hidden',
                         }}
                     >
@@ -260,14 +298,15 @@ const App: React.FC = () => {
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
                                 width: '100%',
+                                flexShrink: 0,
                             }}
                         >
                             <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                                 <IconButton onClick={() => handleSwitchTracker('prev')} sx={{ color: 'primary.main' }}>
-                                    <ArrowBackIcon />
+                                    <ChevronLeftIcon />
                                 </IconButton>
                                 <Typography
-                                    variant="h4"
+                                    variant="h5"
                                     sx={{
                                         flexGrow: 1,
                                         textAlign: 'center',
@@ -280,7 +319,7 @@ const App: React.FC = () => {
                                     {activeTracker?.name ?? 'Pace Tracker'}
                                 </Typography>
                                 <IconButton onClick={() => handleSwitchTracker('next')} sx={{ color: 'primary.main' }}>
-                                    <ArrowForwardIcon />
+                                    <ChevronRightIcon />
                                 </IconButton>
                             </Box>
                             <IconButton
@@ -308,62 +347,147 @@ const App: React.FC = () => {
                             ))}
                         </Menu>
 
-                        {/* Main Pace Button */}
-                        <PaceButton onPaceClick={handlePaceClick} />
-
-                        {/* Metrics */}
-                        <MetricsDisplay
-                            pressTimes={pressTimes}
-                            now={now}
-                        />
-
-                        {/* History List — contained scrolling window */}
+                        {/* Tab Content */}
                         <Box
                             sx={{
-                                width: '100%',
+                                flex: 1,
+                                overflowY: 'auto',
+                                minHeight: 0,
                                 display: 'flex',
                                 flexDirection: 'column',
-                                flexGrow: 1,
-                                minHeight: 0,
-                                overflow: 'hidden',
                             }}
                         >
-                            <Typography variant="h6" sx={{ mb: 1, textAlign: 'left' }}>
-                                History
-                            </Typography>
-                            <Box
-                                sx={{
-                                    flexGrow: 1,
-                                    overflowY: 'auto',
-                                    minHeight: 0,
-                                }}
-                            >
-                                {pressTimes.length === 0 ? (
-                                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                                        No clicks recorded yet.
-                                    </Typography>
-                                ) : (
-                                    <HistoryList
-                                        pressTimes={pressTimes}
-                                        displayCount={displayCount}
-                                        onShowMore={() => setDisplayCount(prev => prev + SHOW_MORE_INCREMENT)}
-                                        onShowLess={() => setDisplayCount(INITIAL_DISPLAY_COUNT)}
+                            {activeTab === 'pace' && (
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 2,
+                                        flex: 1,
+                                        py: 2,
+                                    }}
+                                >
+                                    <PaceButton
+                                        onPaceClick={handlePaceClick}
+                                        elapsed={timeSinceLast}
                                     />
-                                )}
-                            </Box>
+                                </Box>
+                            )}
+
+                            {activeTab === 'history' && (
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 2,
+                                        flex: 1,
+                                        minHeight: 0,
+                                    }}
+                                >
+                                    {pressTimes.length === 0 ? (
+                                        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+                                                No clicks recorded yet.
+                                            </Typography>
+                                        </Box>
+                                    ) : (
+                                        <HistoryList
+                                            pressTimes={pressTimes}
+                                            displayCount={displayCount}
+                                            onShowMore={() => setDisplayCount(prev => prev + SHOW_MORE_INCREMENT)}
+                                            onShowLess={() => setDisplayCount(INITIAL_DISPLAY_COUNT)}
+                                        />
+                                    )}
+                                </Box>
+                            )}
+
+                            {activeTab === 'metrics' && (
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 1.5,
+                                        flex: 1,
+                                        py: 1,
+                                    }}
+                                >
+                                    <MetricsDisplay
+                                        pressTimes={pressTimes}
+                                        now={now}
+                                    />
+                                </Box>
+                            )}
+
+                            {activeTab === 'settings' && (
+                                <SettingsTab
+                                    commitHash={COMMIT_HASH}
+                                    repoUrl={REPO_URL}
+                                    themeMode={state.themeMode}
+                                    onThemeModeChange={handleThemeModeChange}
+                                    trackers={state.trackers}
+                                    activeTrackerId={state.activeTrackerId}
+                                    onSelectTracker={handleSelectTracker}
+                                    onNewTracker={handleNewTracker}
+                                    onDeleteTracker={handleDeleteTracker}
+                                />
+                            )}
                         </Box>
 
-                        {/* Action Buttons */}
-                        <HistoryActions
-                            hasPresses={pressTimes.length > 0}
-                            canDelete={Object.keys(state.trackers).length > 1}
-                            onClearHistory={handleClearHistory}
-                            onNewTracker={handleNewTracker}
-                            onDeleteTracker={handleDeleteTracker}
-                        />
+                        {/* Clear History — always visible, outside scroll */}
+                        {activeTab === 'history' && (
+                            <Box sx={{ flexShrink: 0 }}>
+                                <Button
+                                    variant="contained"
+                                    color="warning"
+                                    size="small"
+                                    onClick={handleClearHistory}
+                                    disabled={pressTimes.length === 0}
+                                    fullWidth
+                                >
+                                    Clear History
+                                </Button>
+                            </Box>
+                        )}
+
+                        {/* Bottom Navigation */}
+                        <BottomNavigation
+                            value={activeTab}
+                            onChange={(_, newValue) => setActiveTab(newValue as TabName)}
+                            sx={{
+                                mt: 'auto',
+                                borderRadius: 2,
+                                bgcolor: 'background.paper',
+                                boxShadow: 1,
+                            }}
+                        >
+                            {TABS.map(tab => (
+                                <BottomNavigationAction
+                                    key={tab.label}
+                                    label={tab.label}
+                                    value={tab.label.toLowerCase() as TabName}
+                                    icon={tab.icon}
+                                    sx={{
+                                        '&.Mui-selected': {
+                                            color: 'primary.main',
+                                        },
+                                    }}
+                                />
+                            ))}
+                        </BottomNavigation>
                     </Paper>
                 </Container>
             </Box>
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+            >
+                <Alert severity={snackbar.severity} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}>
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </ThemeProvider>
     );
 };

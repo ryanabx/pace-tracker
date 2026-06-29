@@ -20,18 +20,16 @@ const MetricsDisplay: React.FC<MetricsDisplayProps> = ({ pressTimes, now }) => {
     }) => (
         <Card
             sx={{
-                flex: '1 1 30%',
-                minWidth: { xs: '100%', sm: 140 },
-                mx: { xs: 0, sm: 0.5 },
-                my: 0.5,
+                width: '100%',
+                mb: 1,
             }}
         >
-            <CardContent sx={{ textAlign: 'center', p: 1.5 }}>
+            <CardContent sx={{ p: 2 }}>
                 <Typography variant="caption" color="text.secondary" gutterBottom>
                     {title}
                 </Typography>
                 <Typography
-                    variant="h6"
+                    variant="h5"
                     sx={{
                         fontWeight: 700,
                         color: 'primary.main',
@@ -52,14 +50,10 @@ const MetricsDisplay: React.FC<MetricsDisplayProps> = ({ pressTimes, now }) => {
     return (
         <Box
             sx={{
-                flexShrink: 0,
                 display: 'flex',
-                gap: 1,
+                flexDirection: 'column',
+                gap: 1.5,
                 width: '100%',
-                overflowX: 'auto',
-                scrollSnapType: 'x mandatory',
-                '&::-webkit-scrollbar': { display: 'none' },
-                scrollbarWidth: 'none',
             }}
         >
             <MetricCard

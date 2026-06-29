@@ -1,9 +1,21 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { execSync } from 'child_process'
+
+const getCommitHash = (): string => {
+    try {
+        return execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim()
+    } catch {
+        return 'dev'
+    }
+}
 
 export default defineConfig({
   base: '/pace-tracker/',
+  define: {
+    __COMMIT_HASH__: JSON.stringify(getCommitHash()),
+  },
   plugins: [
     react(),
     VitePWA({
