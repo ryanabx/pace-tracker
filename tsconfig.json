@@ -12,10 +12,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+    "jsx": "react-jsx",
 
     /* Linting */
     "strict": true,
     "types": ["vite/client", "vitest/globals"]
   },
-  "include": ["src/**/*.ts", "sw.ts", "vite.config.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "sw.ts", "vite.config.ts"]
 }

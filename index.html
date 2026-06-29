@@ -4,35 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pace Tracker</title>
-    <meta name="theme-color" content="#007bff">
+    <meta name="theme-color" content="#1976d2">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
-    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <div class="tracker-header">
-            <button id="prevTrackerButton" class="nav-button">&lt;</button>
-            <h1 id="trackerName">Pace Tracker</h1>
-            <button id="nextTrackerButton" class="nav-button">&gt;</button>
-        </div>
-        <button id="paceButton">Track Pace</button>
-        <div id="metrics-container">
-            <div id="averageTime" class="metric-item">Overall</div>
-            <div id="averageTimeLastTen" class="metric-item">Last 10</div>
-            <div id="timeSinceLastClick" class="metric-item">Since Last</div>
-        </div>
-        <div class="history-container">
-            <h2>History</h2>
-            <ul id="history"></ul>
-        </div>
-        <div class="history-actions">
-            <button id="showMoreButton" class="history-button hidden">Show More</button>
-            <button id="showLessButton" class="history-button hidden">Show Less</button>
-            <button id="clearHistoryButton" class="history-button hidden">Clear History</button>
-            <button id="newTrackerButton" class="history-button">New Tracker</button>
-            <button id="deleteTrackerButton" class="history-button">Delete Tracker</button>
-        </div>
-    </div>
-    <script type="module" src="/src/index.ts"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
 </body>
 </html>

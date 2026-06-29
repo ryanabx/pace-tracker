@@ -1,25 +1,25 @@
 import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   base: '/pace-tracker/',
   plugins: [
+    react(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon-192.png', 'icon-512.png', 'apple-touch-icon.png'],
-      // Use the existing sw.ts file
       strategies: 'injectManifest',
       srcDir: '.',
       filename: 'sw.ts',
       devOptions: {
         enabled: true
-      }
-    ,
+      },
       manifest: {
         name: 'Pace Tracker',
         short_name: 'Pace',
         description: 'A simple app to track the average time between button presses.',
-        theme_color: '#007bff',
+        theme_color: '#1976d2',
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '.',
@@ -41,6 +41,7 @@ export default defineConfig({
             purpose: 'maskable'
           }
         ]
-      }    })
+      }
+    })
   ]
 })
