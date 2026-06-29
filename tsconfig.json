@@ -14,7 +14,8 @@
     "noEmit": true,
 
     /* Linting */
-    "strict": true
+    "strict": true,
+    "types": ["vite/client", "vitest/globals"]
   },
-  "include": ["script.ts", "sw.ts", "vite.config.ts"]
+  "include": ["src/**/*.ts", "sw.ts", "vite.config.ts"]
 }
