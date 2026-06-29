@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, List, ListItem, ListItemText, Typography, IconButton } from '@mui/material';
+import { Box, List, ListItem, ListItemText, IconButton, Typography, useTheme } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
@@ -16,67 +16,37 @@ const HistoryList: React.FC<HistoryListProps> = ({
     onShowMore,
     onShowLess,
 }) => {
+    const theme = useTheme();
     const reversedTimes = [...pressTimes].reverse();
     const timesToDisplay = reversedTimes.slice(0, displayCount);
     const hasMore = reversedTimes.length > displayCount;
-    const hasHistory = pressTimes.length > 0;
 
     return (
-        <Box
-            sx={{
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                flexGrow: 1,
-                minHeight: 0,
-                overflow: 'hidden',
-            }}
-        >
-            <Typography
-                variant="h6"
-                sx={{ mb: 1, textAlign: 'left' }}
-            >
-                History
-            </Typography>
-
-            <Box
-                sx={{
-                    flexGrow: 1,
-                    overflowY: 'auto',
-                    minHeight: 0,
-                }}
-            >
-                {timesToDisplay.length === 0 ? (
-                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                        No clicks recorded yet.
-                    </Typography>
-                ) : (
-                    <List dense>
-                        {timesToDisplay.map((time, index) => (
-                            <ListItem
-                                key={`${time}-${index}`}
-                                sx={{
-                                    bgcolor: 'grey.50',
-                                    borderRadius: 1,
-                                    mb: 0.5,
-                                }}
-                            >
-                                <ListItemText
-                                    primary={new Date(time).toLocaleString()}
-                                    secondary={
-                                        pressTimes.length > 1 && index > 0
-                                            ? `Interval: ${formatInterval(
-                                                  reversedTimes[index - 1],
-                                                  time
-                                              )}`
-                                            : undefined
-                                    }
-                                />
-                            </ListItem>
-                        ))}
-                    </List>
-                )}
-            </Box>
+        <>
+            <List dense>
+                {timesToDisplay.map((time, index) => (
+                    <ListItem
+                        key={`${time}-${index}`}
+                        sx={{
+                            bgcolor: (t: typeof theme) => t.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                            borderRadius: 1,
+                            mb: 0.5,
+                        }}
+                    >
+                        <ListItemText
+                            primary={new Date(time).toLocaleString()}
+                            secondary={
+                                pressTimes.length > 1 && index > 0
+                                    ? `Interval: ${formatInterval(
+                                          reversedTimes[index - 1],
+                                          time
+                                      )}`
+                                    : undefined
+                            }
+                        />
+                    </ListItem>
+                ))}
+            </List>
 
             {/* Show More / Show Less */}
             {hasMore && (
@@ -99,7 +69,7 @@ const HistoryList: React.FC<HistoryListProps> = ({
                     </Typography>
                 </Box>
             )}
-        </Box>
+        </>
     );
 };
 

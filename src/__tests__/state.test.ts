@@ -22,7 +22,8 @@ describe('loadState', () => {
             trackers: {
                 'tracker-1': { name: 'Test Tracker', pressTimes: [1000, 2000, 3000] }
             },
-            activeTrackerId: 'tracker-1'
+            activeTrackerId: 'tracker-1',
+            themeMode: 'auto' as const,
         };
         localStorage.setItem('paceTrackerState', JSON.stringify(savedState));
 
@@ -44,7 +45,8 @@ describe('saveState', () => {
             trackers: {
                 'tracker-1': { name: 'Test Tracker', pressTimes: [1000, 2000] }
             },
-            activeTrackerId: 'tracker-1'
+            activeTrackerId: 'tracker-1',
+            themeMode: 'auto' as const,
         };
 
         saveState(state);
@@ -58,7 +60,8 @@ describe('saveState', () => {
             trackers: {
                 'tracker-1': { name: 'Persisted Tracker', pressTimes: [5000, 10000] }
             },
-            activeTrackerId: 'tracker-1'
+            activeTrackerId: 'tracker-1',
+            themeMode: 'auto' as const,
         };
 
         saveState(originalState);

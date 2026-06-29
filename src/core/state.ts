@@ -3,9 +3,12 @@ export interface Tracker {
     pressTimes: number[];
 }
 
+export type ThemeMode = 'auto' | 'light' | 'dark';
+
 export interface AppState {
     trackers: Record<string, Tracker>;
     activeTrackerId: string | null;
+    themeMode: ThemeMode;
 }
 
 const STORAGE_KEY = 'paceTrackerState';
@@ -22,7 +25,8 @@ export const loadState = (): AppState => {
         trackers: {
             [defaultId]: { name: 'My First Pace', pressTimes: [] }
         },
-        activeTrackerId: defaultId
+        activeTrackerId: defaultId,
+        themeMode: 'auto' as ThemeMode,
     };
 };
 

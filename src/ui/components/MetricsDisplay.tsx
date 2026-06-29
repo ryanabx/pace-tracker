@@ -52,6 +52,7 @@ const MetricsDisplay: React.FC<MetricsDisplayProps> = ({ pressTimes, now }) => {
     return (
         <Box
             sx={{
+                flexShrink: 0,
                 display: 'flex',
                 gap: 1,
                 width: '100%',
