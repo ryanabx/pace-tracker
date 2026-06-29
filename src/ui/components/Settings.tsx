@@ -16,6 +16,7 @@ import {
 import InfoIcon from '@mui/icons-material/Info';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { Tracker, ThemeMode } from '../../core/state';
 
@@ -27,6 +28,7 @@ interface SettingsTabProps {
     trackers: Record<string, Tracker>;
     activeTrackerId: string | null;
     onSelectTracker: (trackerId: string) => void;
+    onRenameTracker: () => void;
     onNewTracker: () => void;
     onDeleteTracker: () => void;
 }
@@ -39,6 +41,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
     trackers,
     activeTrackerId,
     onSelectTracker,
+    onRenameTracker,
     onNewTracker,
     onDeleteTracker,
 }) => {
@@ -151,6 +154,16 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                             fullWidth
                         >
                             New
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            size="small"
+                            onClick={onRenameTracker}
+                            startIcon={<EditIcon />}
+                            fullWidth
+                        >
+                            Rename
                         </Button>
                         <Button
                             variant="contained"

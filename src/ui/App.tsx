@@ -198,6 +198,22 @@ const App: React.FC = () => {
         }
     }, [state]);
 
+    const handleRenameTracker = useCallback(() => {
+        if (!state.activeTrackerId) return;
+        const tracker = state.trackers[state.activeTrackerId];
+        const newName = window.prompt('Enter a new name for this tracker:', tracker.name);
+        if (newName && newName.trim()) {
+            setState({
+                ...state,
+                trackers: {
+                    ...state.trackers,
+                    [state.activeTrackerId]: { ...tracker, name: newName.trim() },
+                },
+            });
+            setSnackbar({ open: true, message: `Tracker renamed to "${newName.trim()}".`, severity: 'success' });
+        }
+    }, [state]);
+
     const handleDeleteTracker = useCallback(() => {
         if (!state.activeTrackerId) return;
         const trackerIds = Object.keys(state.trackers);
@@ -429,6 +445,7 @@ const App: React.FC = () => {
                                     trackers={state.trackers}
                                     activeTrackerId={state.activeTrackerId}
                                     onSelectTracker={handleSelectTracker}
+                                    onRenameTracker={handleRenameTracker}
                                     onNewTracker={handleNewTracker}
                                     onDeleteTracker={handleDeleteTracker}
                                 />
