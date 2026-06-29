@@ -59,7 +59,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
             sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 3,
+                gap: { xs: 1.5, sm: 3 },
                 flex: 1,
                 overflowY: 'auto',
                 minHeight: 0,

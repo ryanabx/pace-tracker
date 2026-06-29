@@ -278,33 +278,31 @@ const App: React.FC = () => {
 
     const timeSinceLast = pressTimes.length > 0 ? getTimeSinceLastClick(pressTimes) : -1;
 
-    const tabContentHeight = {
-        height: { xs: 'calc(85dvh - 56px)', sm: 'calc(80dvh - 56px)' },
-    };
-
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <Box
                 sx={{
-                    minHeight: '100dvh',
+                    height: '100dvh',
                     display: 'flex',
                     justifyContent: 'center',
-                    alignItems: 'flex-start',
+                    alignItems: 'center',
                     bgcolor: 'background.default',
-                    py: { xs: 2, sm: 3 },
+                    py: { xs: 0, sm: 3 },
+                    px: { xs: 0, sm: 2 },
                 }}
             >
-                <Container maxWidth="sm" disableGutters>
+                <Container maxWidth="sm" disableGutters sx={{ px: { xs: 0, sm: 2 } }}>
                     <Paper
                         elevation={3}
                         sx={{
-                            p: { xs: 2, sm: 4 },
+                            height: '100dvh',
+                            p: { xs: 1.5, sm: 4 },
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: 2,
-                            ...tabContentHeight,
+                            gap: { xs: 1, sm: 2 },
                             overflow: 'hidden',
+                            borderRadius: { xs: 0, sm: 4 },
                         }}
                     >
                         {/* Tracker Header with Navigation and Theme Toggle */}
@@ -380,9 +378,9 @@ const App: React.FC = () => {
                                         flexDirection: 'column',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        gap: 2,
+                                        gap: { xs: 1, sm: 2 },
                                         flex: 1,
-                                        py: 2,
+                                        py: { xs: 1, sm: 2 },
                                     }}
                                 >
                                     <PaceButton
@@ -397,7 +395,7 @@ const App: React.FC = () => {
                                     sx={{
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        gap: 2,
+                                        gap: { xs: 0.5, sm: 2 },
                                         flex: 1,
                                         minHeight: 0,
                                     }}
@@ -424,9 +422,9 @@ const App: React.FC = () => {
                                     sx={{
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        gap: 1.5,
+                                        gap: { xs: 1, sm: 1.5 },
                                         flex: 1,
-                                        py: 1,
+                                        py: { xs: 0.5, sm: 1 },
                                     }}
                                 >
                                     <MetricsDisplay

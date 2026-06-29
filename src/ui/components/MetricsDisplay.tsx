@@ -211,12 +211,12 @@ const MetricsDisplay: React.FC<MetricsDisplayProps> = ({ pressTimes, now }) => {
         return bucketPressTimes(pressTimes, period, periodOption.range, now, metricType);
     }, [pressTimes, period, periodOption.range, now, metricType]);
 
-    const chartHeight = 300;
+    const chartHeight = { xs: 250, sm: 300 };
 
     const hasData = data.length > 0 && data.some(d => d.value > 0);
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1, sm: 2 }, width: '100%' }}>
             {/* Metric type tabs */}
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs
@@ -257,8 +257,8 @@ const MetricsDisplay: React.FC<MetricsDisplayProps> = ({ pressTimes, now }) => {
             <Box
                 sx={{
                     width: '100%',
-                    height: chartHeight,
-                    minHeight: 200,
+                    height: { xs: 250, sm: 300 },
+                    minHeight: { xs: 200, sm: 250 },
                 }}
             >
                 {pressTimes.length < 2 ? (
