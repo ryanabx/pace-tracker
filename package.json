@@ -16,6 +16,7 @@
     "@smui/button": "^9.0.6",
     "@smui/card": "^9.0.6",
     "@smui/common": "^9.0.6",
+    "@smui/fab": "^9.0.6",
     "@smui/icon-button": "^9.0.6",
     "@smui/list": "^9.0.6",
     "@smui/menu": "^9.0.6",

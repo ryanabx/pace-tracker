@@ -1,18 +1,17 @@
 <script lang="ts">
-    import Button, { Label, Icon } from '@smui/button';
-    import { mdiWatch } from '@mdi/js';
+    import Fab, { Icon } from '@smui/fab';
+    import { mdiPlus } from '@mdi/js';
     import { formatTime } from '../../core/tracker';
 
     let { onPaceClick, elapsed }: { onPaceClick: () => void; elapsed?: number } = $props();
 </script>
 
 <div class="pace">
-    <Button class="pace-button" variant="raised" onclick={onPaceClick}>
-        <Icon tag="svg" viewBox="0 0 24 24">
-            <path fill="currentColor" d={mdiWatch} />
+    <Fab class="hit-fab" color="primary" title="Record a new hit" onclick={onPaceClick}>
+        <Icon class="hit-icon" tag="svg" viewBox="0 0 24 24">
+            <path fill="currentColor" d={mdiPlus} />
         </Icon>
-        <Label>Track Pace</Label>
-    </Button>
+    </Fab>
     {#if elapsed !== undefined && elapsed >= 0}
         <div class="elapsed">{formatTime(elapsed)}</div>
     {/if}
@@ -26,23 +25,19 @@
         gap: 0.5rem;
     }
 
-    :global(.pace-button) {
-        min-width: 180px;
-        box-shadow: 0 4px 14px rgba(25, 118, 210, 0.4);
+    :global(.hit-fab) {
+        width: 72px;
+        height: 72px;
     }
 
-    :global(.pace-button:active) {
-        transform: scale(0.97);
+    :global(.hit-fab .hit-icon) {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
     }
 
-    @media (min-width: 640px) {
-        .pace {
-            gap: 1rem;
-        }
-
-        :global(.pace-button) {
-            min-width: 200px;
-        }
+    :global(.hit-fab:active) {
+        transform: scale(0.96);
     }
 
     .elapsed {
@@ -50,11 +45,5 @@
         color: var(--mdc-theme-primary);
         font-family: monospace;
         font-size: 1.25rem;
-    }
-
-    @media (min-width: 640px) {
-        .elapsed {
-            font-size: 1.5rem;
-        }
     }
 </style>
