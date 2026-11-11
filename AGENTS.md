@@ -1,6 +1,6 @@
 # Pace Tracker
 
-A quick and simple web-based pace tracker. Uses the browser's `localStorage` to store timestamps and computes the average time between button presses. Built as a PWA with React, TypeScript, Vite, and Vite PWA.
+A quick and simple web-based pace tracker. Uses the browser's `localStorage` to store timestamps and computes the average time between button presses. Built as a PWA with Svelte, Svelte Material UI (SMUI), TypeScript, Vite, and Vite PWA.
 
 ## Prerequisites
 
@@ -14,6 +14,11 @@ A quick and simple web-based pace tracker. Uses the browser's `localStorage` to 
 ```bash
 npm install
 ```
+
+The install step also runs the `prepare` script, which compiles the
+SMUI Sass themes (`src/theme`) into `public/smui.css` and
+`public/smui-dark.css`. If you add a new `@smui/*` package or change the
+themes, re-run `npm run prepare` to regenerate the CSS.
 
 ### 2. Development
 
