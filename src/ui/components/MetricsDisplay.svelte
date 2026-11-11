@@ -5,12 +5,8 @@
     import Paper, { Content } from '@smui/paper';
     import { formatTime } from '../../core/tracker';
     import BarChart from './BarChart.svelte';
-
-    interface ChartPoint {
-        label: string;
-        value: number; // in milliseconds for time-between, in count for hits-per
-        msValue?: number; // only for time-between
-    }
+    import LineChart from './LineChart.svelte';
+    import type { ChartPoint } from './chartUtils';
 
     interface Bucket {
         hits: number;
@@ -44,18 +40,43 @@
         return p === 'day' ? MS_IN_DAY : p === 'week' ? MS_IN_WEEK : MS_IN_MONTH;
     };
 
-    const formatDateKey = (bucketStart: number, p: PeriodGranularity, offset: number): string => {
+    const formatDateKey = (
+        bucketStart: number,
+        p: PeriodGranularity,
+        offset: number
+    ): { label: string; fullLabel: string } => {
         const start = new Date(bucketStart);
-        if (offset === 0) return 'Today';
-        if (offset === 1 && p === 'day') return 'Yesterday';
 
         if (p === 'day') {
-            return `${start.getMonth() + 1}/${start.getDate()}`;
+            if (offset === 0) return { label: 'Today', fullLabel: 'Today' };
+            if (offset === 1) return { label: 'Yesterday', fullLabel: 'Yesterday' };
+            return {
+                label: `${start.getMonth() + 1}/${start.getDate()}`,
+                fullLabel: start.toLocaleDateString('default', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                }),
+            };
         }
+
         if (p === 'week') {
-            return `W${start.getMonth() + 1}/${start.getDate()}`;
+            const since = start.toLocaleDateString('default', { month: 'short', day: 'numeric' });
+            if (offset === 0) {
+                return { label: 'This week', fullLabel: `This week (since ${since})` };
+            }
+            return { label: since, fullLabel: `Week of ${since}` };
         }
-        return `${start.toLocaleString('default', { month: 'short' })} ${start.getFullYear()}`;
+
+        const monthShort = start.toLocaleDateString('default', { month: 'short' });
+        if (offset === 0) {
+            const since = start.toLocaleDateString('default', { month: 'short', day: 'numeric' });
+            return { label: monthShort, fullLabel: `This month (since ${since})` };
+        }
+        return {
+            label: monthShort,
+            fullLabel: `${start.toLocaleDateString('default', { month: 'long' })} ${start.getFullYear()}`,
+        };
     };
 
     const bucketPressTimes = (
@@ -92,15 +113,15 @@
         // Build result array (index 0 = newest, reverse for chart display)
         const result: ChartPoint[] = [];
         for (let i = 0; i < rangeCount; i++) {
-            const label = formatDateKey(nowTs - periodMs * i, p, i);
+            const { label, fullLabel } = formatDateKey(nowTs - periodMs * i, p, i);
             if (compute === 'hits') {
-                result.push({ label, value: buckets[i].hits });
+                result.push({ label, fullLabel, value: buckets[i].hits, hasData: buckets[i].hits > 0 });
             } else {
                 const avg =
                     buckets[i].intervals.length > 0
                         ? buckets[i].intervals.reduce((a, b) => a + b, 0) / buckets[i].intervals.length
                         : 0;
-                result.push({ label, value: avg, msValue: avg });
+                result.push({ label, fullLabel, value: avg, hasData: buckets[i].intervals.length > 0 });
             }
         }
 
@@ -124,13 +145,23 @@
         if (metricType.value === 'hits') {
             return `${d.value} hit${d.value !== 1 ? 's' : ''}`;
         }
-        return `Avg: ${d.msValue != null ? formatTime(d.msValue) : 'N/A'}`;
+        return `Avg: ${formatTime(d.value)}`;
+    };
+
+    // One decimal for small (non-integer) hour/day values so that axis
+    // ticks like 1h and 1.4h don't both render as "1h".
+    const unit = (x: number, suffix: string): string => {
+        const text =
+            x < 10 && !Number.isInteger(x)
+                ? x.toFixed(1).replace(/\.0$/, '')
+                : String(Math.round(x));
+        return text + suffix;
     };
 
     const formatTick = (v: number): string => {
         if (metricType.value === 'hits') return `${Math.round(v)}`;
-        if (v >= MS_IN_DAY) return `${Math.round(v / MS_IN_DAY)}d`;
-        if (v >= 1000 * 60 * 60) return `${Math.round(v / (1000 * 60 * 60))}h`;
+        if (v >= MS_IN_DAY) return unit(v / MS_IN_DAY, 'd');
+        if (v >= 1000 * 60 * 60) return unit(v / (1000 * 60 * 60), 'h');
         if (v >= 1000 * 60) return `${Math.round(v / (1000 * 60))}m`;
         return `${Math.round(v / 1000)}s`;
     };
@@ -158,7 +189,12 @@
         {#if pressTimes.length < 2}
             <p class="empty mdc-typography--body2">Record at least 2 pace hits to see metrics.</p>
         {:else}
-            <BarChart {data} {formatValue} {formatTick} />
+            {#if metricType.value === 'hits'}
+                <BarChart {data} {formatValue} {formatTick} />
+            {:else}
+                <LineChart {data} {formatValue} {formatTick} />
+                <p class="chart-note">Gaps in the line mark periods with no clicks.</p>
+            {/if}
         {/if}
     </div>
 
@@ -228,6 +264,13 @@
         color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.54));
         margin: 0;
         padding: 2rem;
+        text-align: center;
+    }
+
+    .chart-note {
+        margin: 0.5rem 0 0;
+        font-size: 0.75rem;
+        color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.54));
         text-align: center;
     }
 

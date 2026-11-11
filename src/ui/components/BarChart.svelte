@@ -1,38 +1,22 @@
 <script lang="ts">
-    interface BarDatum {
-        label: string;
-        value: number;
-        msValue?: number;
-    }
+    import type { ChartPoint } from './chartUtils';
+    import { niceScale, labelStepFor } from './chartUtils';
 
     let {
         data,
         formatValue,
         formatTick,
     }: {
-        data: BarDatum[];
-        formatValue: (d: BarDatum) => string;
+        data: ChartPoint[];
+        formatValue: (d: ChartPoint) => string;
         formatTick: (v: number) => string;
     } = $props();
 
-    const BAR_COLORS = ['#1976d2', '#42a5f5', '#64b5f6', '#90caf9', '#bbdefb'];
-    const TICK_COUNT = 4;
-
     // Round the max up to a "nice" number (1, 2 or 5 x 10^n)
-    let niceMax = $derived.by(() => {
-        const raw = Math.max(...data.map((d) => d.value), 1);
-        const magnitude = 10 ** Math.floor(Math.log10(raw));
-        const norm = raw / magnitude;
-        const nice = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10;
-        return nice * magnitude;
-    });
-
-    let ticks = $derived(
-        Array.from({ length: TICK_COUNT + 1 }, (_, i) => niceMax * (1 - i / TICK_COUNT))
-    );
+    const { max, ticks } = $derived(niceScale(Math.max(...data.map((d) => d.value), 1)));
 
     // Show a subset of x-axis labels so they don't overlap
-    let labelStep = $derived(Math.max(1, Math.ceil(data.length / 7)));
+    const labelStep = $derived(labelStepFor(data.length));
     const showLabel = (index: number) =>
         index % labelStep === 0 || index === data.length - 1;
 
@@ -47,14 +31,14 @@
     </div>
     <div class="plot">
         {#each ticks as _, i (i)}
-            <div class="grid-line" style="bottom: {(i / TICK_COUNT) * 100}%"></div>
+            <div class="grid-line" style="bottom: {(i / (ticks.length - 1)) * 100}%"></div>
         {/each}
         <div class="bars">
-            {#each data as d, i (d.label + i)}
+            {#each data as d, i (d.fullLabel + i)}
                 <div
                     class="bar-col"
                     role="img"
-                    aria-label={`${d.label}: ${formatValue(d)}`}
+                    aria-label={`${d.fullLabel}: ${formatValue(d)}`}
                     tabindex="0"
                     onmouseenter={() => (hovered = i)}
                     onmouseleave={() => (hovered = null)}
@@ -62,22 +46,23 @@
                     onblur={() => (hovered = null)}
                 >
                     <div
+                        class:bar--current={i === data.length - 1}
                         class="bar"
-                        style="height: {Math.max(0, (d.value / niceMax) * 100)}%; background-color: {BAR_COLORS[i % BAR_COLORS.length]}"
+                        style="height: {Math.max(0, (d.value / max) * 100)}%"
                     ></div>
                 </div>
             {/each}
         </div>
         {#if hovered !== null}
             <div class="tooltip" style="left: {((hovered + 0.5) / data.length) * 100}%">
-                <strong>{data[hovered].label}</strong>
+                <strong>{data[hovered].fullLabel}</strong>
                 <span>{formatValue(data[hovered])}</span>
             </div>
         {/if}
     </div>
     <div></div>
     <div class="x-axis" aria-hidden="true">
-        {#each data as d, i (d.label + i)}
+        {#each data as d, i (d.fullLabel + i)}
             <span>{showLabel(i) ? d.label : ''}</span>
         {/each}
     </div>
@@ -145,6 +130,15 @@
         margin: 0 auto;
         border-radius: 4px 4px 0 0;
         min-height: 2px;
+        background-color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.54));
+        opacity: 0.5;
+    }
+
+    /* Highlight the current (partial) period so it isn't mistaken for a
+       typical value. */
+    .bar--current {
+        background-color: var(--mdc-theme-primary, #1976d2);
+        opacity: 1;
     }
 
     .x-axis {
@@ -155,13 +149,14 @@
         padding-top: 0.25rem;
     }
 
+    /* Labels are sparse (see labelStepFor), so let them overflow into the
+       neighboring empty slots instead of being clipped. */
     .x-axis span {
         flex: 1;
         min-width: 0;
         text-align: center;
         font-size: 0.7rem;
         color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.54));
-        overflow: hidden;
         white-space: nowrap;
     }
 
