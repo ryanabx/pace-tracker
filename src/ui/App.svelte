@@ -4,12 +4,11 @@
     import IconButton from '@smui/icon-button';
     import Menu from '@smui/menu';
     import List, { Item, Text, Graphic } from '@smui/list';
+    import Select, { Option } from '@smui/select';
     import TabBar from '@smui/tab-bar';
     import Tab, { Label, Icon } from '@smui/tab';
     import Kitchen from '@smui/snackbar/kitchen';
     import {
-        mdiChevronLeft,
-        mdiChevronRight,
         mdiSpeedometer,
         mdiHistory,
         mdiChartBar,
@@ -65,6 +64,7 @@
         state.themeMode === 'auto' ? (systemDark ? 'dark' : 'light') : state.themeMode
     );
 
+    let trackerIds = $derived(Object.keys(state.trackers));
     let activeTracker = $derived(
         state.activeTrackerId ? (state.trackers[state.activeTrackerId] ?? null) : null
     );
@@ -91,7 +91,7 @@
     });
 
     // Reset the history view when the active tracker changes
-    // (via the header arrows, the settings select, or tracker creation).
+    // (via the header dropdown, the settings select, or tracker creation).
     $effect(() => {
         if (state.activeTrackerId !== lastTrackerId) {
             lastTrackerId = state.activeTrackerId;
@@ -158,18 +158,6 @@
         }
     };
 
-    const handleSwitchTracker = (direction: 'next' | 'prev') => {
-        if (!state.activeTrackerId) return;
-        const trackerIds = Object.keys(state.trackers);
-        const currentIndex = trackerIds.indexOf(state.activeTrackerId);
-        const nextIndex =
-            direction === 'next'
-                ? (currentIndex + 1) % trackerIds.length
-                : (currentIndex - 1 + trackerIds.length) % trackerIds.length;
-
-        state.activeTrackerId = trackerIds[nextIndex];
-    };
-
     const handleThemeModeChange = (mode: ThemeMode) => {
         state.themeMode = mode;
         themeMenuOpen = false;
@@ -195,17 +183,23 @@
 
 <div class="shell">
     <Paper variant="elevated" class="app-card">
-        <!-- Header with tracker navigation and theme toggle -->
+        <!-- Header with tracker selector and theme toggle -->
         <div class="app-header">
-            <IconButton title="Previous tracker" onclick={() => handleSwitchTracker('prev')}>
-                <Mdi d={mdiChevronLeft} />
-            </IconButton>
-            <h1 class="title" title={activeTracker?.name}>
-                {activeTracker?.name ?? 'Pace Tracker'}
-            </h1>
-            <IconButton title="Next tracker" onclick={() => handleSwitchTracker('next')}>
-                <Mdi d={mdiChevronRight} />
-            </IconButton>
+            {#if trackerIds.length > 1}
+                <Select
+                    class="header-tracker-select"
+                    bind:value={state.activeTrackerId}
+                    label="Tracker"
+                >
+                    {#each trackerIds as id (id)}
+                        <Option value={id}>{state.trackers[id].name}</Option>
+                    {/each}
+                </Select>
+            {:else}
+                <h1 class="title" title={activeTracker?.name}>
+                    {activeTracker?.name ?? 'Pace Tracker'}
+                </h1>
+            {/if}
             <div class="theme-wrap">
                 <IconButton title="Theme" onclick={() => (themeMenuOpen = !themeMenuOpen)}>
                     {#if effectiveTheme === 'dark'}
@@ -388,11 +382,16 @@
     .title {
         flex-grow: 1;
         margin: 0;
-        text-align: center;
         color: var(--mdc-theme-primary);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+
+    :global(.header-tracker-select) {
+        flex-grow: 1;
+        min-width: 120px;
+        max-width: 280px;
     }
 
     .theme-wrap {
