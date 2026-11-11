@@ -1,0 +1,45 @@
+@use '@smui/common/theme/color-palette';
+
+// Dark theme, matching the palette of the old Material UI theme.
+@use '@smui/common/theme/index' as theme with (
+  $primary: #90caf9,
+  $secondary: #ef5350,
+  $surface: #1e1e1e,
+  $background: #121212,
+  $error: color-palette.$red-400
+);
+
+// The smui-theme compiler does not emit :root declarations for the theme
+// custom properties (components only use var() with inline fallbacks), so
+// declare them here to let our own styles reference var(--mdc-theme-*).
+:root {
+  // Note: custom property values are not evaluated by Sass, hence the interpolation.
+  --mdc-theme-primary: #{theme.$primary};
+  --mdc-theme-secondary: #{theme.$secondary};
+  --mdc-theme-background: #{theme.$background};
+  --mdc-theme-surface: #{theme.$surface};
+  --mdc-theme-error: #{theme.$error};
+  --mdc-theme-on-primary: #{theme.$on-primary};
+  --mdc-theme-on-secondary: #{theme.$on-secondary};
+  --mdc-theme-on-surface: #{theme.$on-surface};
+  --mdc-theme-text-primary-on-background: #{theme.text-emphasis('primary')};
+  --mdc-theme-text-secondary-on-background: #{theme.text-emphasis('secondary')};
+  --mdc-theme-text-hint-on-background: #{theme.text-emphasis('hint')};
+}
+
+// Use the system font stack instead of Roboto so the app has no web font
+// dependency (it should work fully offline as a PWA).
+:root {
+  --mdc-typography-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, Helvetica, Arial, sans-serif;
+}
+
+html,
+body {
+  background-color: theme.$background;
+  color: theme.$on-surface;
+}
+
+a {
+  color: theme.$primary;
+}

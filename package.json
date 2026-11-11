@@ -8,27 +8,31 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepare": "smui-theme compile public/smui.css -i src/theme && smui-theme compile public/smui-dark.css -i src/theme/dark"
   },
   "devDependencies": {
-    "@types/recharts": "^1.8.29",
-    "@vitejs/plugin-react": "^4.7.0",
+    "@mdi/js": "^7.4.47",
+    "@smui/button": "^9.0.6",
+    "@smui/card": "^9.0.6",
+    "@smui/common": "^9.0.6",
+    "@smui/fab": "^9.0.6",
+    "@smui/icon-button": "^9.0.6",
+    "@smui/list": "^9.0.6",
+    "@smui/menu": "^9.0.6",
+    "@smui/paper": "^9.0.6",
+    "@smui/select": "^9.0.6",
+    "@smui/snackbar": "^9.0.6",
+    "@smui/tab": "^9.0.6",
+    "@smui/tab-bar": "^9.0.6",
+    "@sveltejs/vite-plugin-svelte": "^5.1.1",
     "@vitest/ui": "^1.6.0",
     "jsdom": "^29.1.1",
+    "smui-theme": "^9.0.6",
+    "svelte": "^5.57.3",
     "typescript": "^5.2.2",
-    "vite": "^5.2.0",
-    "vite-plugin-pwa": "^0.20.0",
+    "vite": "^6.0.0",
+    "vite-plugin-pwa": "^0.21.2",
     "vitest": "^1.6.0"
-  },
-  "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^9.1.1",
-    "@mui/material": "^9.1.2",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "recharts": "^3.9.0"
   }
 }

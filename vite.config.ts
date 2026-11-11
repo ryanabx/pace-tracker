@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { VitePWA } from 'vite-plugin-pwa'
 import { execSync } from 'child_process'
 
@@ -17,7 +17,7 @@ export default defineConfig({
     __COMMIT_HASH__: JSON.stringify(getCommitHash()),
   },
   plugins: [
-    react(),
+    svelte(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon-192.png', 'icon-512.png', 'apple-touch-icon.png'],

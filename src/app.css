@@ -1,0 +1,25 @@
+/*
+ * Global styles. Theme colors come from the compiled SMUI theme CSS
+ * (public/smui.css and public/smui-dark.css), which also sets the page
+ * background and text color. Only use var(--mdc-theme-*) here so these
+ * styles follow the active theme.
+ */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    height: 100%;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+button {
+    font-family: inherit;
+}
