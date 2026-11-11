@@ -1,4 +1,9 @@
 <script lang="ts">
+    import List, { Item, Text, PrimaryText, SecondaryText } from '@smui/list';
+    import IconButton from '@smui/icon-button';
+    import { mdiChevronDown, mdiChevronUp } from '@mdi/js';
+    import Mdi from './Mdi.svelte';
+
     let {
         pressTimes,
         displayCount,
@@ -32,60 +37,38 @@
     };
 </script>
 
-<ul class="history-list">
+<List class="history-list" twoLine>
     {#each timesToDisplay as time, index (`${time}-${index}`)}
-        <li class="history-item">
-            <div class="primary">{new Date(time).toLocaleString()}</div>
-            {#if pressTimes.length > 1 && index > 0}
-                <div class="secondary">Interval: {formatInterval(reversedTimes[index - 1], time)}</div>
-            {/if}
-        </li>
+        <Item>
+            <Text>
+                <PrimaryText>{new Date(time).toLocaleString()}</PrimaryText>
+                {#if pressTimes.length > 1 && index > 0}
+                    <SecondaryText>Interval: {formatInterval(reversedTimes[index - 1], time)}</SecondaryText>
+                {/if}
+            </Text>
+        </Item>
     {/each}
-</ul>
+</List>
 
 {#if hasMore}
     <div class="show-toggle">
-        <button class="show-btn" onclick={onShowMore} aria-label="Show more">
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <path fill="currentColor" d="M7.41,7.84L12,12.42l4.59,-4.58L18,9.25l-6,6l-6,-6z" />
-            </svg>
-        </button>
+        <IconButton title="Show more" onclick={onShowMore}>
+            <Mdi d={mdiChevronDown} />
+        </IconButton>
         <span class="show-label">Show More</span>
     </div>
 {:else if pressTimes.length > displayCount}
     <div class="show-toggle">
-        <button class="show-btn" onclick={onShowLess} aria-label="Show less">
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <path fill="currentColor" d="M12,8l-6,6L1.5,13.5L12,24l10.5,-10.5L17.41,14z" transform="translate(0 -7)" />
-            </svg>
-        </button>
+        <IconButton title="Show less" onclick={onShowLess}>
+            <Mdi d={mdiChevronUp} />
+        </IconButton>
         <span class="show-label">Show Less</span>
     </div>
 {/if}
 
 <style>
-    .history-list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
-    .history-item {
-        background-color: var(--row-bg);
+    :global(.history-list .mdc-deprecated-list-item) {
         border-radius: 0.25rem;
-        padding: 0.5rem 0.75rem;
-    }
-
-    .primary {
-        font-size: 0.9rem;
-    }
-
-    .secondary {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
     }
 
     .show-toggle {
@@ -96,26 +79,8 @@
         margin-top: 0.5rem;
     }
 
-    .show-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 2rem;
-        height: 2rem;
-        border: none;
-        border-radius: 50%;
-        background: transparent;
-        color: var(--primary);
-        cursor: pointer;
-        padding: 0;
-    }
-
-    .show-btn:hover {
-        background: var(--selected-bg);
-    }
-
     .show-label {
         font-size: 0.75rem;
-        color: var(--text-secondary);
+        color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.54));
     }
 </style>

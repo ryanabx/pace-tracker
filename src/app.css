@@ -1,30 +1,9 @@
-:root {
-    --bg: #f0f2f5;
-    --paper: #ffffff;
-    --primary: #1976d2;
-    --secondary: #dc3545;
-    --warning: #ed6c02;
-    --success: #2e7d32;
-    --text: rgba(0, 0, 0, 0.87);
-    --text-secondary: rgba(0, 0, 0, 0.54);
-    --divider: rgba(0, 0, 0, 0.12);
-    --row-bg: #fafafa;
-    --selected-bg: rgba(25, 118, 210, 0.08);
-}
-
-:root[data-theme='dark'] {
-    --bg: #121212;
-    --paper: #1e1e1e;
-    --primary: #90caf9;
-    --secondary: #ef5350;
-    --warning: #ffa726;
-    --success: #66bb6a;
-    --text: rgba(255, 255, 255, 0.87);
-    --text-secondary: rgba(255, 255, 255, 0.54);
-    --divider: rgba(255, 255, 255, 0.12);
-    --row-bg: rgba(255, 255, 255, 0.06);
-    --selected-bg: rgba(144, 202, 249, 0.12);
-}
+/*
+ * Global styles. Theme colors come from the compiled SMUI theme CSS
+ * (public/smui.css and public/smui-dark.css), which also sets the page
+ * background and text color. Only use var(--mdc-theme-*) here so these
+ * styles follow the active theme.
+ */
 
 * {
     box-sizing: border-box;
@@ -37,8 +16,6 @@ body {
 }
 
 body {
-    background-color: var(--bg);
-    color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
 }

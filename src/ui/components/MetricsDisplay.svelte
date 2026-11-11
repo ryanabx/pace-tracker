@@ -1,4 +1,8 @@
 <script lang="ts">
+    import TabBar from '@smui/tab-bar';
+    import Tab, { Label } from '@smui/tab';
+    import Select, { Option } from '@smui/select';
+    import Paper, { Content } from '@smui/paper';
     import { formatTime } from '../../core/tracker';
     import BarChart from './BarChart.svelte';
 
@@ -33,7 +37,7 @@
 
     let { pressTimes, now }: { pressTimes: number[]; now: number } = $props();
 
-    let metricType = $state<MetricType>('hits');
+    let metricType = $state(METRIC_TYPES[0]);
     let period = $state<PeriodGranularity>('day');
 
     const getPeriodMs = (p: PeriodGranularity): number => {
@@ -107,7 +111,7 @@
     let periodOption = $derived(PERIOD_OPTIONS.find((o) => o.value === period)!);
 
     let data = $derived(
-        bucketPressTimes(pressTimes, period, periodOption.range, now, metricType)
+        bucketPressTimes(pressTimes, period, periodOption.range, now, metricType.value)
     );
 
     let hasData = $derived(data.length > 0 && data.some((d) => d.value > 0));
@@ -117,14 +121,14 @@
     let avg = $derived(nonZero.length > 0 ? total / nonZero.length : 0);
 
     const formatValue = (d: ChartPoint): string => {
-        if (metricType === 'hits') {
+        if (metricType.value === 'hits') {
             return `${d.value} hit${d.value !== 1 ? 's' : ''}`;
         }
         return `Avg: ${d.msValue != null ? formatTime(d.msValue) : 'N/A'}`;
     };
 
     const formatTick = (v: number): string => {
-        if (metricType === 'hits') return `${Math.round(v)}`;
+        if (metricType.value === 'hits') return `${Math.round(v)}`;
         if (v >= MS_IN_DAY) return `${Math.round(v / MS_IN_DAY)}d`;
         if (v >= 1000 * 60 * 60) return `${Math.round(v / (1000 * 60 * 60))}h`;
         if (v >= 1000 * 60) return `${Math.round(v / (1000 * 60))}m`;
@@ -134,34 +138,25 @@
 
 <div class="metrics">
     <!-- Metric type tabs -->
-    <div class="metric-tabs" role="tablist">
-        {#each METRIC_TYPES as t (t.value)}
-            <button
-                role="tab"
-                aria-selected={metricType === t.value}
-                class="metric-tab"
-                class:active={metricType === t.value}
-                onclick={() => (metricType = t.value)}
-            >
-                {t.label}
-            </button>
-        {/each}
-    </div>
+    <TabBar class="metric-tabs" tabs={METRIC_TYPES} key={(t) => t.value} bind:active={metricType}>
+        {#snippet tab(tab)}
+            <Tab {tab}>
+                <Label>{tab.label}</Label>
+            </Tab>
+        {/snippet}
+    </TabBar>
 
     <!-- Period selector -->
-    <label class="period-label">
-        <span>Period</span>
-        <select value={period} onchange={(e) => (period = e.currentTarget.value as PeriodGranularity)}>
-            {#each PERIOD_OPTIONS as o (o.value)}
-                <option value={o.value}>{o.label}</option>
-            {/each}
-        </select>
-    </label>
+    <Select class="period-select" bind:value={period} label="Period">
+        {#each PERIOD_OPTIONS as o (o.value)}
+            <Option value={o.value}>{o.label}</Option>
+        {/each}
+    </Select>
 
     <!-- Chart -->
     <div class="chart-area">
         {#if pressTimes.length < 2}
-            <p class="empty">Record at least 2 pace hits to see metrics.</p>
+            <p class="empty mdc-typography--body2">Record at least 2 pace hits to see metrics.</p>
         {:else}
             <BarChart {data} {formatValue} {formatTick} />
         {/if}
@@ -169,20 +164,30 @@
 
     <!-- Summary row -->
     {#if hasData}
-        <div class="summary">
-            <div class="stat">
-                <div class="stat-label">{metricType === 'hits' ? 'Total hits' : 'Total intervals'}</div>
-                <div class="stat-value">{metricType === 'hits' ? total : nonZero.length}</div>
-            </div>
-            <div class="stat">
-                <div class="stat-label">{metricType === 'hits' ? 'Avg hits/period' : 'Avg time between'}</div>
-                <div class="stat-value">{metricType === 'hits' ? avg.toFixed(1) : formatTime(avg)}</div>
-            </div>
-            <div class="stat">
-                <div class="stat-label">Periods with data</div>
-                <div class="stat-value">{nonZero.length} / {data.length}</div>
-            </div>
-        </div>
+        <Paper class="summary" variant="unelevated">
+            <Content>
+                <div class="stat">
+                    <div class="stat-label">
+                        {metricType.value === 'hits' ? 'Total hits' : 'Total intervals'}
+                    </div>
+                    <div class="stat-value">
+                        {metricType.value === 'hits' ? total : nonZero.length}
+                    </div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">
+                        {metricType.value === 'hits' ? 'Avg hits/period' : 'Avg time between'}
+                    </div>
+                    <div class="stat-value">
+                        {metricType.value === 'hits' ? avg.toFixed(1) : formatTime(avg)}
+                    </div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Periods with data</div>
+                    <div class="stat-value">{nonZero.length} / {data.length}</div>
+                </div>
+            </Content>
+        </Paper>
     {/if}
 </div>
 
@@ -195,49 +200,13 @@
         padding: 0.5rem 0;
     }
 
-    .metric-tabs {
-        display: flex;
-        border-bottom: 1px solid var(--divider);
+    :global(.metric-tabs) {
+        border-bottom: 1px solid var(--mdc-theme-outline, rgba(0, 0, 0, 0.12));
     }
 
-    .metric-tab {
-        flex: 1;
-        border: none;
-        background: transparent;
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        font-weight: 500;
-        padding: 0.75rem 0.5rem;
-        cursor: pointer;
-        border-bottom: 2px solid transparent;
-    }
-
-    .metric-tab:hover {
-        background: var(--selected-bg);
-    }
-
-    .metric-tab.active {
-        color: var(--primary);
-        border-bottom-color: var(--primary);
-    }
-
-    .period-label {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-size: 0.875rem;
-        max-width: 280px;
-    }
-
-    .period-label select {
-        flex: 1;
-        padding: 0.375rem 0.5rem;
-        border-radius: 0.375rem;
-        border: 1px solid var(--divider);
-        background-color: var(--paper);
-        color: var(--text);
-        font-size: 0.875rem;
-        font-family: inherit;
+    :global(.period-select) {
+        min-width: 220px;
+        max-width: 320px;
     }
 
     .chart-area {
@@ -256,30 +225,31 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        color: var(--text-secondary);
-        font-size: 0.875rem;
+        color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.54));
         margin: 0;
         padding: 2rem;
         text-align: center;
     }
 
-    .summary {
+    :global(.summary) {
+        border-radius: 0.5rem;
+    }
+
+    :global(.summary .smui-paper__content) {
         display: flex;
         flex-wrap: wrap;
         gap: 1rem;
         padding: 0.75rem 1rem;
-        border-radius: 0.5rem;
-        background-color: var(--selected-bg);
     }
 
     .stat-label {
         font-size: 0.75rem;
-        color: var(--text-secondary);
+        color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.54));
     }
 
     .stat-value {
         font-size: 1rem;
         font-weight: 600;
-        color: var(--primary);
+        color: var(--mdc-theme-primary);
     }
 </style>

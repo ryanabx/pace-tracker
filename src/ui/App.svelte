@@ -1,39 +1,65 @@
 <script lang="ts">
+    import Paper from '@smui/paper';
+    import Button, { Label as ButtonLabel } from '@smui/button';
+    import IconButton from '@smui/icon-button';
+    import Menu from '@smui/menu';
+    import List, { Item, Text, Graphic } from '@smui/list';
+    import TabBar from '@smui/tab-bar';
+    import Tab, { Label, Icon } from '@smui/tab';
+    import Kitchen from '@smui/snackbar/kitchen';
+    import {
+        mdiChevronLeft,
+        mdiChevronRight,
+        mdiSpeedometer,
+        mdiHistory,
+        mdiChartBar,
+        mdiCog,
+        mdiWeatherNight,
+        mdiWhiteBalanceSunny,
+        mdiThemeLightDark,
+    } from '@mdi/js';
+
     import { loadState, saveState, type AppState, type ThemeMode } from '../core/state';
     import { getTimeSinceLastClick } from '../core/tracker';
     import PaceButton from './components/PaceButton.svelte';
     import HistoryList from './components/HistoryList.svelte';
     import MetricsDisplay from './components/MetricsDisplay.svelte';
     import SettingsTab from './components/Settings.svelte';
+    import Mdi from './components/Mdi.svelte';
 
     const INITIAL_DISPLAY_COUNT = 5;
     const SHOW_MORE_INCREMENT = 10;
     const COMMIT_HASH = __COMMIT_HASH__;
     const REPO_URL = 'https://github.com/ryanabx/pace-tracker';
+    const DARK_THEME_CSS = `${import.meta.env.BASE_URL}smui-dark.css`;
 
-    type TabName = 'pace' | 'history' | 'metrics' | 'settings';
+    interface NavTab {
+        name: 'pace' | 'history' | 'metrics' | 'settings';
+        label: string;
+        icon: string;
+    }
 
-    const TABS: { name: TabName; label: string }[] = [
-        { name: 'pace', label: 'Pace' },
-        { name: 'history', label: 'History' },
-        { name: 'metrics', label: 'Metrics' },
-        { name: 'settings', label: 'Settings' },
+    const TABS: NavTab[] = [
+        { name: 'pace', label: 'Pace', icon: mdiSpeedometer },
+        { name: 'history', label: 'History', icon: mdiHistory },
+        { name: 'metrics', label: 'Metrics', icon: mdiChartBar },
+        { name: 'settings', label: 'Settings', icon: mdiCog },
     ];
 
-    const THEME_OPTIONS: { mode: ThemeMode; label: string }[] = [
-        { mode: 'auto', label: 'Auto (System)' },
-        { mode: 'light', label: 'Light' },
-        { mode: 'dark', label: 'Dark' },
+    const THEME_OPTIONS: { mode: ThemeMode; label: string; icon: string }[] = [
+        { mode: 'auto', label: 'Auto (System)', icon: mdiThemeLightDark },
+        { mode: 'light', label: 'Light', icon: mdiWhiteBalanceSunny },
+        { mode: 'dark', label: 'Dark', icon: mdiWeatherNight },
     ];
 
     let state = $state<AppState>(loadState());
-    let activeTab = $state<TabName>('pace');
+    let activeTab = $state<NavTab>(TABS[0]);
     let displayCount = $state(INITIAL_DISPLAY_COUNT);
+    let lastTrackerId = $state(state.activeTrackerId);
     let now = $state(Date.now());
     let themeMenuOpen = $state(false);
-    let toast = $state({ open: false, message: '' });
-    let toastTimer: ReturnType<typeof setTimeout> | undefined;
     let systemDark = $state(window.matchMedia('(prefers-color-scheme: dark)').matches);
+    let kitchen: Kitchen;
 
     let effectiveTheme = $derived(
         state.themeMode === 'auto' ? (systemDark ? 'dark' : 'light') : state.themeMode
@@ -44,11 +70,6 @@
     );
     let pressTimes = $derived(activeTracker?.pressTimes ?? []);
     let timeSinceLast = $derived(pressTimes.length > 0 ? getTimeSinceLastClick(pressTimes) : -1);
-
-    // Reflect the effective theme on the document root (see app.css)
-    $effect(() => {
-        document.documentElement.dataset.theme = effectiveTheme;
-    });
 
     // Track the system theme for "auto" mode
     $effect(() => {
@@ -69,10 +90,17 @@
         return () => clearInterval(interval);
     });
 
+    // Reset the history view when the active tracker changes
+    // (via the header arrows, the settings select, or tracker creation).
+    $effect(() => {
+        if (state.activeTrackerId !== lastTrackerId) {
+            lastTrackerId = state.activeTrackerId;
+            displayCount = INITIAL_DISPLAY_COUNT;
+        }
+    });
+
     const showToast = (message: string) => {
-        toast = { open: true, message };
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => (toast = { open: false, message: '' }), 3000);
+        kitchen.push({ label: message });
     };
 
     const handlePaceClick = () => {
@@ -140,12 +168,6 @@
                 : (currentIndex - 1 + trackerIds.length) % trackerIds.length;
 
         state.activeTrackerId = trackerIds[nextIndex];
-        displayCount = INITIAL_DISPLAY_COUNT;
-    };
-
-    const handleSelectTracker = (trackerId: string) => {
-        state.activeTrackerId = trackerId;
-        displayCount = INITIAL_DISPLAY_COUNT;
     };
 
     const handleThemeModeChange = (mode: ThemeMode) => {
@@ -154,63 +176,72 @@
     };
 </script>
 
+<svelte:head>
+    <!--
+        The light theme is loaded statically in index.html. This file, loaded
+        afterwards, overrides the theme colors when dark mode is active (or,
+        in "auto" mode, whenever the system prefers dark colors).
+    -->
+    {#if state.themeMode === 'dark'}
+        <link rel="stylesheet" href={DARK_THEME_CSS} media="screen" />
+    {:else if state.themeMode === 'auto'}
+        <link
+            rel="stylesheet"
+            href={DARK_THEME_CSS}
+            media="screen and (prefers-color-scheme: dark)"
+        />
+    {/if}
+</svelte:head>
+
 <div class="shell">
-    <div class="card">
+    <Paper variant="elevated" class="app-card">
         <!-- Header with tracker navigation and theme toggle -->
-        <header class="app-header">
-            <button class="icon-btn" title="Previous tracker" onclick={() => handleSwitchTracker('prev')}>
-                <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-                    <path fill="currentColor" d="M15.41,7.41L14,6l-6,6l6,6l1.41,-1.41l-4.59,-4.59z" />
-                </svg>
-            </button>
-            <h1 class="title" title={activeTracker?.name}>{activeTracker?.name ?? 'Pace Tracker'}</h1>
-            <button class="icon-btn" title="Next tracker" onclick={() => handleSwitchTracker('next')}>
-                <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-                    <path fill="currentColor" d="M8.59,16.59L10.01,18l6,-6l-6,-6l-1.42,1.41l4.59,4.59z" />
-                </svg>
-            </button>
+        <div class="app-header">
+            <IconButton title="Previous tracker" onclick={() => handleSwitchTracker('prev')}>
+                <Mdi d={mdiChevronLeft} />
+            </IconButton>
+            <h1 class="title" title={activeTracker?.name}>
+                {activeTracker?.name ?? 'Pace Tracker'}
+            </h1>
+            <IconButton title="Next tracker" onclick={() => handleSwitchTracker('next')}>
+                <Mdi d={mdiChevronRight} />
+            </IconButton>
             <div class="theme-wrap">
-                <button class="icon-btn" title="Theme" onclick={() => (themeMenuOpen = !themeMenuOpen)}>
+                <IconButton title="Theme" onclick={() => (themeMenuOpen = !themeMenuOpen)}>
                     {#if effectiveTheme === 'dark'}
-                        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-                            <path
-                                fill="currentColor"
-                                d="M12.34,2.02C6.59,1.82,2,6.42,2,12c0,5.52,4.48,10,10,10c3.71,0,6.93,-2.02,8.66,-5.02C13.15,16.73,8.57,8.55,12.34,2.02z" />
-                        </svg>
+                        <Mdi d={mdiWeatherNight} />
                     {:else}
-                        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-                            <path
-                                fill="currentColor"
-                                d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3,-1.35-3,-3S10.35,9,12,9zM12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5,-2.24,5,-5S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1,-0.45,1,-1s-0.45,-1,-1,-1l-2,0C1.45,11,1,11.45,1,12S1.45,13,2,13z M20,13l2,0c0.55,0,1,-0.45,1,-1s-0.45,-1,-1,-1l-2,0C19.45,11,19,11.45,19,12S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1,-0.45,1,-1V2C13,1.45,12.55,1,12,1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1,-0.45,1,-1v-2C13,20.45,12.55,20,12,20S11,20.45,11,20z M5.99,4.58c-0.39,-0.39,-1.03,-0.39,-1.41,0c-0.39,0.39,-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39,-1.03,0,-1.41L5.99,4.58z M18.36,16.95c-0.39,-0.39,-1.03,-0.39,-1.41,0c-0.39,0.39,-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39,-0.39,0.39,-1.03,0,-1.41L18.36,16.95z M19.42,5.99c0.39,-0.39,0.39,-1.03,0,-1.41c-0.39,-0.39,-1.03,-0.39,-1.41,0l-1.06,1.06c-0.39,0.39,-0.39,1.03,0,1.41s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39,-0.39,0.39,-1.03,0,-1.41c-0.39,-0.39,-1.03,-0.39,-1.41,0l-1.06,1.06c-0.39,0.39,-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z" />
-                        </svg>
+                        <Mdi d={mdiWhiteBalanceSunny} />
                     {/if}
-                </button>
-                {#if themeMenuOpen}
-                    <div class="theme-menu">
+                </IconButton>
+                <Menu bind:open={themeMenuOpen}>
+                    <List>
                         {#each THEME_OPTIONS as option (option.mode)}
-                            <button
-                                class="theme-menu-item"
-                                class:active={state.themeMode === option.mode}
-                                onclick={() => handleThemeModeChange(option.mode)}
+                            <Item
+                                selected={state.themeMode === option.mode}
+                                onSMUIAction={() => handleThemeModeChange(option.mode)}
                             >
-                                {option.label}
-                            </button>
+                                <Graphic>
+                                    <Mdi d={option.icon} />
+                                </Graphic>
+                                <Text>{option.label}</Text>
+                            </Item>
                         {/each}
-                    </div>
-                {/if}
+                    </List>
+                </Menu>
             </div>
-        </header>
+        </div>
 
         <!-- Tab content -->
         <div class="content">
-            {#if activeTab === 'pace'}
+            {#if activeTab.name === 'pace'}
                 <div class="pace-view">
                     <PaceButton onPaceClick={handlePaceClick} elapsed={timeSinceLast} />
                 </div>
-            {:else if activeTab === 'history'}
+            {:else if activeTab.name === 'history'}
                 <div class="history-view">
                     {#if pressTimes.length === 0}
-                        <p class="empty">No clicks recorded yet.</p>
+                        <p class="empty mdc-typography--body2">No clicks recorded yet.</p>
                     {:else}
                         <HistoryList
                             {pressTimes}
@@ -220,17 +251,15 @@
                         />
                     {/if}
                 </div>
-            {:else if activeTab === 'metrics'}
+            {:else if activeTab.name === 'metrics'}
                 <MetricsDisplay {pressTimes} {now} />
             {:else}
                 <SettingsTab
                     commitHash={COMMIT_HASH}
                     repoUrl={REPO_URL}
-                    themeMode={state.themeMode}
-                    onThemeModeChange={handleThemeModeChange}
+                    bind:themeMode={state.themeMode}
+                    bind:activeTrackerId={state.activeTrackerId}
                     trackers={state.trackers}
-                    activeTrackerId={state.activeTrackerId}
-                    onSelectTracker={handleSelectTracker}
                     onRenameTracker={handleRenameTracker}
                     onNewTracker={handleNewTracker}
                     onDeleteTracker={handleDeleteTracker}
@@ -239,35 +268,38 @@
         </div>
 
         <!-- Clear History — always visible, outside scroll -->
-        {#if activeTab === 'history'}
+        {#if activeTab.name === 'history'}
             <div class="clear-row">
-                <button
+                <Button
                     class="clear-btn"
+                    variant="raised"
                     disabled={pressTimes.length === 0}
                     onclick={handleClearHistory}
                 >
-                    Clear History
-                </button>
+                    <ButtonLabel>Clear History</ButtonLabel>
+                </Button>
             </div>
         {/if}
 
         <!-- Bottom navigation -->
-        <nav class="bottom-nav">
-            {#each TABS as tab (tab.name)}
-                <button
-                    class="nav-item"
-                    class:active={activeTab === tab.name}
-                    onclick={() => (activeTab = tab.name)}
-                >
-                    {tab.label}
-                </button>
-            {/each}
-        </nav>
-    </div>
+        <TabBar
+            class="bottom-nav"
+            tabs={TABS}
+            key={(tab: NavTab) => tab.name}
+            bind:active={activeTab}
+        >
+            {#snippet tab(tab)}
+                <Tab {tab}>
+                    <Icon tag="svg" viewBox="0 0 24 24">
+                        <path fill="currentColor" d={tab.icon} />
+                    </Icon>
+                    <Label>{tab.label}</Label>
+                </Tab>
+            {/snippet}
+        </TabBar>
+    </Paper>
 
-    {#if toast.open}
-        <div class="toast">{toast.message}</div>
-    {/if}
+    <Kitchen bind:this={kitchen} />
 </div>
 
 <style>
@@ -278,15 +310,15 @@
         align-items: center;
     }
 
-    .card {
+    :global(.app-card) {
         height: 100dvh;
         width: 100%;
-        background-color: var(--paper);
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
         overflow: hidden;
         padding: 0.75rem;
+        border-radius: 0;
     }
 
     @media (min-width: 640px) {
@@ -294,11 +326,9 @@
             padding: 1.5rem 1rem;
         }
 
-        .card {
-            width: 100%;
+        :global(.app-card) {
             max-width: 600px;
             border-radius: 0.5rem;
-            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.15), 0 5px 8px rgba(0, 0, 0, 0.1);
             padding: 2rem;
             gap: 1rem;
         }
@@ -311,32 +341,16 @@
         flex-shrink: 0;
     }
 
-    .icon-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 2.5rem;
-        height: 2.5rem;
-        border: none;
-        border-radius: 50%;
-        background: transparent;
-        color: var(--primary);
-        cursor: pointer;
-        padding: 0;
-        flex-shrink: 0;
-    }
-
-    .icon-btn:hover {
-        background: var(--selected-bg);
+    :global(.app-header .mdc-icon-button) {
+        --mdc-icon-button-hover-opacity: 1;
+        color: var(--mdc-theme-primary);
     }
 
     .title {
         flex-grow: 1;
         margin: 0;
-        font-size: 1.25rem;
-        font-weight: 500;
         text-align: center;
-        color: var(--primary);
+        color: var(--mdc-theme-primary);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -345,40 +359,6 @@
     .theme-wrap {
         position: relative;
         margin-left: 0.25rem;
-    }
-
-    .theme-menu {
-        position: absolute;
-        top: calc(100% + 4px);
-        right: 0;
-        z-index: 10;
-        min-width: 10rem;
-        background-color: var(--paper);
-        border: 1px solid var(--divider);
-        border-radius: 0.5rem;
-        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.15);
-        padding: 0.25rem 0;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .theme-menu-item {
-        border: none;
-        background: transparent;
-        color: var(--text);
-        text-align: left;
-        padding: 0.5rem 1rem;
-        font-size: 0.875rem;
-        cursor: pointer;
-    }
-
-    .theme-menu-item:hover {
-        background: var(--selected-bg);
-    }
-
-    .theme-menu-item.active {
-        color: var(--primary);
-        font-weight: 600;
     }
 
     .content {
@@ -412,8 +392,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        color: var(--text-secondary);
-        font-size: 0.875rem;
+        color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.54));
         margin: 0;
         padding: 2rem;
         text-align: center;
@@ -423,63 +402,12 @@
         flex-shrink: 0;
     }
 
-    .clear-btn {
+    :global(.clear-btn) {
         width: 100%;
-        border: none;
-        border-radius: 0.375rem;
-        background-color: var(--warning);
-        color: #fff;
-        font-size: 0.875rem;
-        font-weight: 600;
-        padding: 0.625rem;
-        cursor: pointer;
     }
 
-    .clear-btn:disabled {
-        opacity: 0.4;
-        cursor: default;
-    }
-
-    .bottom-nav {
+    :global(.bottom-nav) {
         flex-shrink: 0;
-        display: flex;
-        border-top: 1px solid var(--divider);
-        background-color: var(--paper);
-    }
-
-    .nav-item {
-        flex: 1;
-        border: none;
-        background: transparent;
-        color: var(--text-secondary);
-        font-size: 0.8125rem;
-        padding: 0.75rem 0.25rem;
-        cursor: pointer;
-        border-top: 2px solid transparent;
-    }
-
-    .nav-item:hover {
-        background: var(--selected-bg);
-    }
-
-    .nav-item.active {
-        color: var(--primary);
-        border-top-color: var(--primary);
-        font-weight: 600;
-    }
-
-    .toast {
-        position: fixed;
-        bottom: 1.5rem;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #323232;
-        color: #fff;
-        padding: 0.75rem 1.25rem;
-        border-radius: 0.375rem;
-        font-size: 0.875rem;
-        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
-        z-index: 100;
-        max-width: 90vw;
+        border-top: 1px solid var(--mdc-theme-outline, rgba(0, 0, 0, 0.12));
     }
 </style>
