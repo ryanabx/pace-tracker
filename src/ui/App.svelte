@@ -19,7 +19,7 @@
         mdiThemeLightDark,
     } from '@mdi/js';
 
-    import { loadState, saveState, type AppState, type ThemeMode } from '../core/state';
+    import { loadState, saveState, nextTrackerName, type AppState, type ThemeMode } from '../core/state';
     import { getTimeSinceLastClick } from '../core/tracker';
     import PaceButton from './components/PaceButton.svelte';
     import HistoryList from './components/HistoryList.svelte';
@@ -122,7 +122,7 @@
     };
 
     const handleNewTracker = () => {
-        const name = window.prompt('Enter a name for the new tracker:', 'New Pace');
+        const name = window.prompt('Enter a name for the new tracker:', nextTrackerName(state.trackers));
         if (name) {
             const newId = `tracker-${Date.now()}`;
             state.trackers[newId] = { name, pressTimes: [] };

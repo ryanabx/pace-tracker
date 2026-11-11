@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { loadState, saveState } from '../core/state';
+import { loadState, saveState, nextTrackerName } from '../core/state';
+import type { Tracker } from '../core/state';
 
 describe('loadState', () => {
     beforeEach(() => {
@@ -13,7 +14,7 @@ describe('loadState', () => {
         expect(state).toHaveProperty('activeTrackerId');
         expect(Object.keys(state.trackers)).toHaveLength(1);
         expect(state.activeTrackerId).toBeTruthy();
-        expect(state.trackers[state.activeTrackerId!].name).toBe('My First Pace');
+        expect(state.trackers[state.activeTrackerId!].name).toBe('Tracker 1');
         expect(state.trackers[state.activeTrackerId!].pressTimes).toEqual([]);
     });
 
@@ -32,6 +33,49 @@ describe('loadState', () => {
         expect(state).toEqual(savedState);
         expect(state.trackers['tracker-1'].name).toBe('Test Tracker');
         expect(state.trackers['tracker-1'].pressTimes).toEqual([1000, 2000, 3000]);
+    });
+});
+
+describe('nextTrackerName', () => {
+    const tracker = (name: string): Tracker => ({ name, pressTimes: [] });
+
+    it('returns Tracker 1 when no trackers exist', () => {
+        expect(nextTrackerName({})).toBe('Tracker 1');
+    });
+
+    it('returns Tracker N+1 for N trackers', () => {
+        expect(
+            nextTrackerName({
+                't1': tracker('Tracker 1'),
+                't2': tracker('Tracker 2'),
+                't3': tracker('Tracker 3'),
+            })
+        ).toBe('Tracker 4');
+    });
+
+    it('skips names that collide with existing trackers', () => {
+        // 2 trackers, so the sequence starts at Tracker 3 — which collides.
+        expect(
+            nextTrackerName({
+                't1': tracker('Tracker 1'),
+                't2': tracker('Tracker 3'),
+            })
+        ).toBe('Tracker 4');
+    });
+
+    it('does not collide with custom names', () => {
+        expect(nextTrackerName({ 't1': tracker('Laps'), 't2': tracker('Coffee') })).toBe(
+            'Tracker 3'
+        );
+    });
+
+    it('starts from the tracker count, not from the highest numbered tracker', () => {
+        expect(
+            nextTrackerName({
+                't1': tracker('Tracker 1'),
+                't2': tracker('Tracker 10'),
+            })
+        ).toBe('Tracker 3');
     });
 });
 
