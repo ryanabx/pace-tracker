@@ -232,6 +232,23 @@
             </div>
         </div>
 
+        <!-- Tab navigation: at the bottom on phones, on top on wider screens -->
+        <TabBar
+            class="nav-tabs"
+            tabs={TABS}
+            key={(tab: NavTab) => tab.name}
+            bind:active={activeTab}
+        >
+            {#snippet tab(tab)}
+                <Tab {tab}>
+                    <Icon tag="svg" viewBox="0 0 24 24">
+                        <path fill="currentColor" d={tab.icon} />
+                    </Icon>
+                    <Label>{tab.label}</Label>
+                </Tab>
+            {/snippet}
+        </TabBar>
+
         <!-- Tab content -->
         <div class="content">
             {#if activeTab.name === 'pace'}
@@ -281,38 +298,30 @@
             </div>
         {/if}
 
-        <!-- Bottom navigation -->
-        <TabBar
-            class="bottom-nav"
-            tabs={TABS}
-            key={(tab: NavTab) => tab.name}
-            bind:active={activeTab}
-        >
-            {#snippet tab(tab)}
-                <Tab {tab}>
-                    <Icon tag="svg" viewBox="0 0 24 24">
-                        <path fill="currentColor" d={tab.icon} />
-                    </Icon>
-                    <Label>{tab.label}</Label>
-                </Tab>
-            {/snippet}
-        </TabBar>
     </Paper>
 
     <Kitchen bind:this={kitchen} />
 </div>
 
 <style>
+    /*
+     * Mobile-first layout: the app fills the whole viewport and the tab
+     * navigation sits at the bottom. From 640px up, the app becomes a
+     * rounded card with a margin around it, the tabs move to the top (the
+     * conventional desktop position), and the content is limited to a
+     * readable width.
+     */
     .shell {
         height: 100dvh;
         display: flex;
         justify-content: center;
-        align-items: center;
     }
 
-    :global(.app-card) {
-        height: 100dvh;
+    /* Two classes to outrank the .smui-paper--rounded border-radius rule. */
+    :global(.app-card.smui-paper) {
+        height: 100%;
         width: 100%;
+        max-width: 100%;
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
@@ -321,16 +330,46 @@
         border-radius: 0;
     }
 
+    /* Mobile order: header, content, (clear row), tabs. */
+    .app-header {
+        order: 0;
+    }
+
+    .content {
+        order: 1;
+    }
+
+    .clear-row {
+        order: 2;
+    }
+
+    :global(.nav-tabs) {
+        order: 3;
+    }
+
     @media (min-width: 640px) {
         .shell {
-            padding: 1.5rem 1rem;
+            padding: 1.25rem;
         }
 
-        :global(.app-card) {
-            max-width: 600px;
-            border-radius: 0.5rem;
-            padding: 2rem;
+        :global(.app-card.smui-paper) {
+            max-width: 860px;
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
             gap: 1rem;
+        }
+
+        /* Desktop order: header, tabs, content, (clear row). */
+        :global(.nav-tabs) {
+            order: 1;
+        }
+
+        .content {
+            order: 2;
+        }
+
+        .clear-row {
+            order: 3;
         }
     }
 
@@ -367,6 +406,16 @@
         min-height: 0;
         display: flex;
         flex-direction: column;
+    }
+
+    @media (min-width: 640px) {
+        /* Keep content at a readable width on wide screens. */
+        .content,
+        .clear-row {
+            max-width: 720px;
+            width: 100%;
+            margin: 0 auto;
+        }
     }
 
     .pace-view {
@@ -406,8 +455,20 @@
         width: 100%;
     }
 
-    :global(.bottom-nav) {
+    :global(.nav-tabs) {
         flex-shrink: 0;
         border-top: 1px solid var(--mdc-theme-outline, rgba(0, 0, 0, 0.12));
+    }
+
+    @media (min-width: 640px) {
+        :global(.nav-tabs) {
+            border-top: none;
+            border-bottom: 1px solid var(--mdc-theme-outline, rgba(0, 0, 0, 0.12));
+        }
+
+        :global(.clear-btn) {
+            width: auto;
+            margin: 0 auto;
+        }
     }
 </style>
