@@ -14,6 +14,9 @@
     </Fab>
     {#if elapsed !== undefined && elapsed >= 0}
         <div class="elapsed">{formatTime(elapsed)}</div>
+        <div class="elapsed-caption">time since last hit</div>
+    {:else}
+        <div class="hint">Tap to record your first hit</div>
     {/if}
 </div>
 
@@ -28,6 +31,7 @@
     :global(.hit-fab) {
         width: 72px;
         height: 72px;
+        margin-bottom: 0.5rem;
     }
 
     :global(.hit-fab .hit-icon) {
@@ -45,5 +49,16 @@
         color: var(--mdc-theme-primary);
         font-family: monospace;
         font-size: 1.25rem;
+    }
+
+    .elapsed-caption {
+        font-size: 0.75rem;
+        letter-spacing: 0.02em;
+        color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.54));
+    }
+
+    .hint {
+        font-size: 0.875rem;
+        color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.54));
     }
 </style>

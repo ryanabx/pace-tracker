@@ -69,7 +69,7 @@
     </Card>
 
     <!-- Trackers Section -->
-    <Card>
+    <Card class="settings-card--trackers">
         <Content>
             <h2 class="section-title">Trackers</h2>
             <Select class="tracker-select" bind:value={activeTrackerId}>
@@ -108,12 +108,23 @@
 
 <style>
     .settings {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: 1fr;
         gap: 1rem;
         flex: 1;
         min-height: 0;
         overflow-y: auto;
+    }
+
+    @media (min-width: 720px) {
+        .settings {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        /* The trackers card is the widest; give it the full row. */
+        :global(.settings-card--trackers) {
+            grid-column: 1 / -1;
+        }
     }
 
     :global(.settings .smui-card__content) {

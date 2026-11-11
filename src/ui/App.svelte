@@ -11,7 +11,7 @@
     import {
         mdiSpeedometer,
         mdiHistory,
-        mdiChartBar,
+        mdiChartLine,
         mdiCog,
         mdiWeatherNight,
         mdiWhiteBalanceSunny,
@@ -41,7 +41,7 @@
     const TABS: NavTab[] = [
         { name: 'pace', label: 'Pace', icon: mdiSpeedometer },
         { name: 'history', label: 'History', icon: mdiHistory },
-        { name: 'metrics', label: 'Metrics', icon: mdiChartBar },
+        { name: 'metrics', label: 'Metrics', icon: mdiChartLine },
         { name: 'settings', label: 'Settings', icon: mdiCog },
     ];
 
@@ -252,11 +252,15 @@
             {:else if activeTab.name === 'history'}
                 <div class="history-view">
                     {#if pressTimes.length === 0}
-                        <p class="empty mdc-typography--body2">No clicks recorded yet.</p>
+                        <div class="empty">
+                            <Mdi d={mdiHistory} size={40} />
+                            <p>No clicks recorded yet.</p>
+                        </div>
                     {:else}
                         <HistoryList
                             {pressTimes}
                             {displayCount}
+                            initialCount={INITIAL_DISPLAY_COUNT}
                             onShowMore={() => (displayCount += SHOW_MORE_INCREMENT)}
                             onShowLess={() => (displayCount = INITIAL_DISPLAY_COUNT)}
                         />
@@ -438,12 +442,18 @@
     .empty {
         flex: 1;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+        gap: 0.75rem;
         color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.54));
         margin: 0;
         padding: 2rem;
         text-align: center;
+    }
+
+    .empty p {
+        margin: 0;
     }
 
     .clear-row {

@@ -1,17 +1,17 @@
 <script lang="ts">
     import List, { Item, Text, PrimaryText, SecondaryText } from '@smui/list';
-    import IconButton from '@smui/icon-button';
-    import { mdiChevronDown, mdiChevronUp } from '@mdi/js';
-    import Mdi from './Mdi.svelte';
+    import Button, { Label } from '@smui/button';
 
     let {
         pressTimes,
         displayCount,
+        initialCount,
         onShowMore,
         onShowLess,
     }: {
         pressTimes: number[];
         displayCount: number;
+        initialCount: number;
         onShowMore: () => void;
         onShowLess: () => void;
     } = $props();
@@ -51,19 +51,13 @@
 </List>
 
 {#if hasMore}
-    <div class="show-toggle">
-        <IconButton title="Show more" onclick={onShowMore}>
-            <Mdi d={mdiChevronDown} />
-        </IconButton>
-        <span class="show-label">Show More</span>
-    </div>
-{:else if pressTimes.length > displayCount}
-    <div class="show-toggle">
-        <IconButton title="Show less" onclick={onShowLess}>
-            <Mdi d={mdiChevronUp} />
-        </IconButton>
-        <span class="show-label">Show Less</span>
-    </div>
+    <Button variant="text" class="show-toggle" onclick={onShowMore}>
+        <Label>Show more</Label>
+    </Button>
+{:else if pressTimes.length >= initialCount}
+    <Button variant="text" class="show-toggle" onclick={onShowLess}>
+        <Label>Show less</Label>
+    </Button>
 {/if}
 
 <style>
@@ -72,15 +66,7 @@
     }
 
     .show-toggle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.25rem;
-        margin-top: 0.5rem;
-    }
-
-    .show-label {
-        font-size: 0.75rem;
-        color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.54));
+        align-self: center;
+        margin-top: 0.25rem;
     }
 </style>

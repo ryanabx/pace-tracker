@@ -3,7 +3,9 @@
     import Tab, { Label } from '@smui/tab';
     import Select, { Option } from '@smui/select';
     import Paper, { Content } from '@smui/paper';
+    import { mdiChartLine } from '@mdi/js';
     import { formatTime } from '../../core/tracker';
+    import Mdi from './Mdi.svelte';
     import BarChart from './BarChart.svelte';
     import LineChart from './LineChart.svelte';
     import type { ChartPoint } from './chartUtils';
@@ -187,7 +189,10 @@
     <!-- Chart -->
     <div class="chart-area">
         {#if pressTimes.length < 2}
-            <p class="empty mdc-typography--body2">Record at least 2 pace hits to see metrics.</p>
+            <div class="empty">
+                <Mdi d={mdiChartLine} size={40} />
+                <p>Record at least 2 pace hits to see metrics.</p>
+            </div>
         {:else}
             {#if metricType.value === 'hits'}
                 <BarChart {data} {formatValue} {formatTick} />
@@ -259,12 +264,18 @@
     .empty {
         height: 100%;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+        gap: 0.75rem;
         color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.54));
         margin: 0;
         padding: 2rem;
         text-align: center;
+    }
+
+    .empty p {
+        margin: 0;
     }
 
     .chart-note {
